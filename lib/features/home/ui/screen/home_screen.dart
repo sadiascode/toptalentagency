@@ -5,6 +5,7 @@ import 'package:top_talent_agency/core/services/role_storage_service.dart';
 import 'package:top_talent_agency/features/home/controller/admin/manager_controller.dart';
 import 'package:top_talent_agency/features/home/data/home_ai_model.dart';
 import 'package:top_talent_agency/features/home/services/home_ai_service.dart';
+import 'package:top_talent_agency/features/home/services/admin_stats_service.dart';
 import 'package:top_talent_agency/features/home/widget/custom_alerts.dart';
 import 'package:top_talent_agency/features/home/widget/custom_both.dart';
 import 'package:top_talent_agency/features/home/widget/custom_coin.dart';
@@ -30,8 +31,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    managerController = Get.put(ManagerController());
+    print('🏠 initState called');
+    print('   - Is Admin: $isAdmin');
     _fetchAiData();
+    if (isAdmin) {
+      print('🏠 Calling _fetchAdminStats...');
+      _fetchAdminStats();
+    } else {
+      print('🏠 Not admin, skipping admin stats fetch');
+    }
   }
 
   Future<void> _fetchAiData() async {
@@ -41,32 +49,53 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      print('🏠 Home Screen: Fetching AI data for role: ${widget.role.name}');
+      print(' Home Screen: Fetching AI data for role: ${widget.role.name}');
       final data = await HomeAiService.fetchAiResponse(widget.role.name);
       
       setState(() {
-        aiData = data;
         isLoading = false;
+        aiData = data;
       });
 
       if (data != null) {
-        print('🏠 Home Screen: AI data loaded');
+        print(' Home Screen: AI data loaded');
         print('   - Welcome Msg: ${data.welcomeMsg.msg}');
         print('   - Alert Message: ${data.dailySummary.alertMessage}');
         print('   - Priority: ${data.dailySummary.priority}');
       } else {
-        print('🏠 Home Screen: Using fallback data');
+        print(' Home Screen: Using fallback data');
         setState(() {
           aiData = HomeAiService.createFallbackModel(widget.role.name);
         });
       }
     } catch (e) {
       setState(() {
-        errorMessage = e.toString();
         isLoading = false;
+        errorMessage = e.toString();
         aiData = HomeAiService.createFallbackModel(widget.role.name);
       });
-      print('🏠 Home Screen: Error - $errorMessage');
+      print(' Home Screen: Error - $errorMessage');
+    }
+  }
+
+  Future<void> _fetchAdminStats() async {
+    try {
+      print(' Home Screen: Fetching admin stats...');
+      final adminStats = await AdminStatsService.fetchAdminStats();
+      
+      if (adminStats != null && aiData != null) {
+        setState(() {
+          // Update existing aiData with new admin stats
+          aiData = AdminHomeAiModel(
+            welcomeMsg: aiData!.welcomeMsg,
+            dailySummary: aiData!.dailySummary,
+            adminStats: adminStats,
+          );
+        });
+        print(' Home Screen: Admin stats updated successfully');
+      }
+    } catch (e) {
+      print(' Home Screen: Error fetching admin stats - $e');
     }
   }
 
@@ -78,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final ManagerController managerController = Get.put(ManagerController());
     
-    print('🏠 HomeScreen Build Debug:');
+    print(' HomeScreen Build Debug:');
     print('   - Role: ${widget.role}');
     print('   - Is Admin: $isAdmin');
     print('   - AI Data: ${aiData != null ? "Present" : "Null"}');
@@ -241,10 +270,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     CustomMinicontainer(
                       title: "Total Creators",
-                      subtitle: "↑ 5.2% from last month",
                       iconPath: 'assets/user.svg',
-                      number: 1000,
-                      subtitleColor: Color(0xff00A63E),
+                      number: aiData?.adminStats.totalCreators ?? 1000,
                     ),
                     SizedBox(width: 9),
                     Flexible(
@@ -253,45 +280,37 @@ class _HomeScreenState extends State<HomeScreen> {
                         if (managerController.isLoading.value) {
                           return CustomMinicontainer(
                             title: "Managers",
-                            subtitle: "Loading...",
                             iconPath: 'assets/m.svg',
-                            number: 0,
+                            number: aiData?.adminStats.totalManagers ?? 0,
                           );
                         } else {
                           return CustomMinicontainer(
                             title: "Managers",
-                            subtitle: "↑ Avg 120 creators each",
                             iconPath: 'assets/m.svg',
-                            number: managerController.managerCount.value,
+                            number: aiData?.adminStats.totalManagers ?? managerController.managerCount.value,
                           );
                         }
                       }),
                     ),
-
-
                   ],
                 ),
                 SizedBox(height: 15),
-
                 Row(
                   children: [
                     CustomMinicontainer(
-                      title: "Underperforming",
-                      subtitle: "20.0% of total",
-                      iconPath: 'assets/icons.svg',
-                      number: 240,
-                      subtitleColor: Color((0xffF54900)),
+                      title: "Total Diamonds",
+                      iconPath: 'assets/coin.svg',
+                      number: aiData?.adminStats.totalDiamonds ?? 240,
                     ),
                     SizedBox(width: 9),
                     CustomMinicontainer(
-                      title: "Scraped Today",
-                      subtitle: "Last: 30 mins ago",
+                      title: "Total Scrap",
                       iconPath: 'assets/clock.svg',
-                      number: 45623,
+                      number: aiData?.adminStats.totalScrap ?? 45623,
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 15),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Align(

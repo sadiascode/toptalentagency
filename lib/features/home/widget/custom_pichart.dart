@@ -119,7 +119,7 @@ class CustomPichart extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    '\$800 achieved',
+                    '800 achieved',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white,

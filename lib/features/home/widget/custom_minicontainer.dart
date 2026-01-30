@@ -6,19 +6,15 @@ import '../../../common/custom_color.dart';
 
 class CustomMinicontainer extends StatefulWidget {
   final String title;
-  final String subtitle;
   final String iconPath;
   final int number;
-  final Color? subtitleColor;
   final Color? borderColor;
 
   const CustomMinicontainer({
     super.key,
     required this.title,
-    required this.subtitle,
     required this.iconPath,
     required this.number,
-    this.subtitleColor,
     this.borderColor,
   });
 
@@ -78,7 +74,7 @@ class _CustomMinicontainerState extends State<CustomMinicontainer> {
                   ],
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 35),
                 Text(
                   NumberFormat('#,###').format(widget.number),
                   style: const TextStyle(
@@ -88,14 +84,6 @@ class _CustomMinicontainerState extends State<CustomMinicontainer> {
                   ),
                 ),
 
-                const SizedBox(height: 25),
-                Text(
-                  widget.subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: widget.subtitleColor ?? Colors.white,
-                  ),
-                ),
               ],
             ),
           ),

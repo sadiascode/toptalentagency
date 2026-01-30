@@ -32,14 +32,14 @@ class CustomCoin extends StatelessWidget {
         children: [
           // Title
           Text(
-            'Coins & Hours Overview',
+            'Diamonds & Hours Overview',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
 
           // Total Coins Section
           Row(
@@ -82,16 +82,8 @@ class CustomCoin extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '87% of monthly target (12M)',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white,
-            ),
-          ),
 
-          const SizedBox(height: 15),
+          const SizedBox(height: 35),
 
           // Total Hours Section
           Row(
@@ -130,13 +122,7 @@ class CustomCoin extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            '85% of monthly target (120K)',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white,
-            ),
-          ),
+
         ],
       ),
       ),

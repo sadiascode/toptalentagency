@@ -57,6 +57,10 @@ class HomeAiService {
         print('   - Alert Message: ${aiModel.dailySummary.alertMessage}');
         print('   - Priority: ${aiModel.dailySummary.priority}');
         print('   - Summary: ${aiModel.dailySummary.summary}');
+        print('   - Total Diamonds: ${aiModel.adminStats.totalDiamonds}');
+        print('   - Total Managers: ${aiModel.adminStats.totalManagers}');
+        print('   - Total Creators: ${aiModel.adminStats.totalCreators}');
+        print('   - Total Scrap: ${aiModel.adminStats.totalScrap}');
         
         return aiModel;
       } else {
@@ -77,24 +81,26 @@ class HomeAiService {
     return AdminHomeAiModel(
       welcomeMsg: WelcomeMessage(
         msgType: 'fallback',
-        msg: 'Unable to load AI insights. Please check your connection.',
+        msg: 'Unable to fetch AI data. Please check your connection.',
       ),
       dailySummary: DailySummary(
-        summary: 'No AI summary available at the moment.',
-        reason: 'API connection failed or server unavailable.',
-        suggestedAction: [
-          'Check internet connection',
-          'Try refreshing the page',
-          'Contact support if issue persists'
-        ],
-        alertType: 'system_alert',
-        alertMessage: 'AI Service Unavailable',
-        priority: 'medium',
+        summary: 'No summary available at the moment.',
+        reason: 'Connection issue or server unavailable',
+        suggestedAction: ['Please try again later', 'Check internet connection'],
+        alertType: null,
+        alertMessage: null,
+        priority: null,
         status: 'inactive',
         updatedAt: UpdatedAt(
-          date: DateTime.now().toString().split(' ')[0],
-          time: DateTime.now().toString().split(' ')[1].substring(0, 8),
+          date: DateTime.now().toString().substring(0, 10),
+          time: DateTime.now().toString().substring(11, 19),
         ),
+      ),
+      adminStats: AdminStats(
+        totalDiamonds: 0,
+        totalManagers: 0,
+        totalCreators: 0,
+        totalScrap: 0,
       ),
     );
   }

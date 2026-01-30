@@ -13,13 +13,10 @@ class Urls {
   static const String forgot_password = "$baseUrl/auth/forgot-password/";
   static const String verify_otp = "$baseUrl/auth/verify-otp/";
 
-  // Admin
-  static const String All_Managers = "$baseUrl/api/managers";
+  // dashboard Admin
+  static const String Admin = "$baseUrl/api/dashboard/admin/";
 
-  // manager
-  static const String All_Creators = "$baseUrl/api/creators/";
-
-  // dashboard
+  // dashboard month
   static const String Month_wise_Filter_admin = "$baseUrl/api/dashboard/admin/?month=202601";
   static const String Month_wise_Filter_manager = "$baseUrl/api/dashboard/manager/?month=202601";
   static const String Month_wise_Filter_creator = "$baseUrl/api/dashboard/creator/?month=202601";

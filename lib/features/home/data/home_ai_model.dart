@@ -3,16 +3,19 @@
 class AdminHomeAiModel {
   final WelcomeMessage welcomeMsg;
   final DailySummary dailySummary;
+  final AdminStats adminStats;
 
   AdminHomeAiModel({
     required this.welcomeMsg,
     required this.dailySummary,
+    required this.adminStats,
   });
 
   factory AdminHomeAiModel.fromJson(Map<String, dynamic> json) {
     return AdminHomeAiModel(
       welcomeMsg: WelcomeMessage.fromJson(json['welcome_msg'] ?? {}),
       dailySummary: DailySummary.fromJson(json['daily_summary'] ?? {}),
+      adminStats: AdminStats.fromJson(json['admin_stats'] ?? {}),
     );
   }
 
@@ -20,6 +23,7 @@ class AdminHomeAiModel {
     return {
       'welcome_msg': welcomeMsg.toJson(),
       'daily_summary': dailySummary.toJson(),
+      'admin_stats': adminStats.toJson(),
     };
   }
 }
@@ -223,4 +227,37 @@ class DailySummary {
 
   // Check if it mentions managers
   bool get isAboutManagers => reason.toLowerCase().contains('manager');
+}
+
+// Admin Stats Model
+class AdminStats {
+  final int totalDiamonds;
+  final int totalManagers;
+  final int totalCreators;
+  final int totalScrap;
+
+  AdminStats({
+    required this.totalDiamonds,
+    required this.totalManagers,
+    required this.totalCreators,
+    required this.totalScrap,
+  });
+
+  factory AdminStats.fromJson(Map<String, dynamic> json) {
+    return AdminStats(
+      totalDiamonds: json['total_diamonds'] ?? 0,
+      totalManagers: json['total_managers'] ?? 0,
+      totalCreators: json['total_creators'] ?? 0,
+      totalScrap: json['total_scrap'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'total_diamonds': totalDiamonds,
+      'total_managers': totalManagers,
+      'total_creators': totalCreators,
+      'total_scrap': totalScrap,
+    };
+  }
 }
