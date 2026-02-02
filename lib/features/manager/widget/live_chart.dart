@@ -4,12 +4,24 @@ import 'package:flutter/material.dart';
 import '../../../common/custom_color.dart';
 
 class LiveChart extends StatelessWidget {
+  final Map<String, double>? monthlyData;
+
   const LiveChart({
     super.key,
+    this.monthlyData,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Use API data or fallback data
+    final data = monthlyData ?? {
+      'December': 3529.0,
+      'January': 0.0,
+      'February': 0.0,
+    };
+
+    final maxValue = data.values.fold(0.0, (max, value) => value > max ? value : max);
+    
     return Container(
       padding: const EdgeInsets.all(1.5),
       decoration: BoxDecoration(
@@ -31,75 +43,117 @@ class LiveChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Last 30 Days Performance",
+            "Last 3 Months Performance",
             style: TextStyle(color:Colors.white,fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
 
           SizedBox(
-            height: 170,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(show: false),
-                borderData: FlBorderData(show: false),
+            height: 200,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxValue > 0 ? maxValue * 1.2 : 100,
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (_) => Colors.white,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      final month = data.keys.elementAt(group.x.toInt());
+                      final value = data.values.elementAt(group.x.toInt());
+                      return BarTooltipItem(
+                        '$month\n${value.toInt()} diamonds',
+                        const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  show: true,
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      interval: 5,
+                      getTitlesWidget: (value, meta) {
+                        if (value.toInt() >= 0 && value.toInt() < data.keys.length) {
+                          final month = data.keys.elementAt(value.toInt());
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              month.length > 3 ? month.substring(0, 3) : month,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          "D${value.toInt()}",
-                          style: const TextStyle(
+                          value.toInt().toString(),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 10,
-                            color: Colors.black54,
                           ),
                         );
                       },
                     ),
                   ),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
-                minX: 1,
-                maxX: 30,
-                minY: 0,
-                maxY: 100,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(1, 20),
-                      FlSpot(5, 40),
-                      FlSpot(10, 35),
-                      FlSpot(15, 60),
-                      FlSpot(20, 55),
-                      FlSpot(25, 80),
-                      FlSpot(30, 70),
+                borderData: FlBorderData(show: false),
+                barGroups: data.entries.map((entry) {
+                  final index = data.keys.toList().indexOf(entry.key);
+                  return BarChartGroupData(
+                    x: index,
+                    barRods: [
+                      BarChartRodData(
+                        toY: entry.value,
+                        color: _getMonthColor(entry.key),
+                        width: 22,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(6),
+                        ),
+                      ),
                     ],
-                    isCurved: true,
-                    color: Color(0xff7C3AED),
-                    barWidth: 3,
-                    dotData: FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Color(0xff7C3AED).withOpacity(0.12),
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
           ),
-          Center(child: Text("Daily coins earned over the past month", style: TextStyle(color: Colors.white))),
+          Center(
+            child: Text(
+              "Monthly Diamonds earned",
+              style: TextStyle(color: Colors.white.withOpacity(0.8)),
+            ),
+          ),
         ],
       ),
       ),
     );
+  }
+
+  Color _getMonthColor(String month) {
+    switch (month) {
+      case 'December':
+        return const Color(0xFF9B8DD9);
+      case 'January':
+        return const Color(0xFF7C3AED);
+      case 'February':
+        return const Color(0xFF5B21B6);
+      default:
+        return const Color(0xFF9B8DD9);
+    }
   }
 }

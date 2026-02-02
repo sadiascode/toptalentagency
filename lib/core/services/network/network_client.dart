@@ -20,14 +20,14 @@ class NetworkClient {
   NetworkClient({required this.onUnAuthorize, required this.commonHeaders});
 
   // Get auth token using TokenStorageService
-  String? _getAuthToken() {
-    return TokenStorageService.getStoredToken();
+  Future<String?> _getAuthToken() async {
+    return await TokenStorageService.getStoredToken();
   }
 
   // Get headers with auth token
-  Map<String, String> _getHeadersWithAuth() {
+  Future<Map<String, String>> _getHeadersWithAuth() async {
     final headers = Map<String, String>.from(commonHeaders());
-    final token = _getAuthToken();
+    final token = await _getAuthToken();
     
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
@@ -52,7 +52,7 @@ class NetworkClient {
     try {
       Uri uri = Uri.parse(url);
 
-      final headers = _getHeadersWithAuth();
+      final headers = await _getHeadersWithAuth();
       headers.remove('Content-Type'); // Let multipart set its own content type
 
       _logRequest(url, headers: headers, body: fields);
@@ -97,7 +97,7 @@ class NetworkClient {
   Future<NetworkResponse> getRequest(String url) async {
     try {
       Uri uri = Uri.parse(url);
-      final headers = _getHeadersWithAuth();
+      final headers = await _getHeadersWithAuth();
       _logRequest(url, headers: headers);
 
       final Response response = await get(uri, headers: headers);
@@ -117,7 +117,7 @@ class NetworkClient {
   Future<NetworkResponse> postRequest(String url, {Map<String, dynamic>? body}) async {
     try {
       Uri uri = Uri.parse(url);
-      final headers = _getHeadersWithAuth();
+      final headers = await _getHeadersWithAuth();
       _logRequest(url, headers: headers, body: body);
 
       final Response response = await post(
@@ -141,7 +141,7 @@ class NetworkClient {
   Future<NetworkResponse> putRequest(String url, {Map<String, dynamic>? body}) async {
     try {
       Uri uri = Uri.parse(url);
-      final headers = _getHeadersWithAuth();
+      final headers = await _getHeadersWithAuth();
       _logRequest(url, headers: headers, body: body);
 
       final Response response = await put(
@@ -165,7 +165,7 @@ class NetworkClient {
   Future<NetworkResponse> patchRequest(String url, {Map<String, dynamic>? body}) async {
     try {
       Uri uri = Uri.parse(url);
-      final headers = _getHeadersWithAuth();
+      final headers = await _getHeadersWithAuth();
       _logRequest(url, headers: headers, body: body);
 
       final Response response = await patch(
@@ -189,7 +189,7 @@ class NetworkClient {
   Future<NetworkResponse> deleteRequest(String url, {Map<String, dynamic>? body}) async {
     try {
       Uri uri = Uri.parse(url);
-      final headers = _getHeadersWithAuth();
+      final headers = await _getHeadersWithAuth();
       _logRequest(url, headers: headers, body: body);
 
       final Response response = await delete(

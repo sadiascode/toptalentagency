@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:top_talent_agency/app/urls.dart';
 import 'package:top_talent_agency/core/roles.dart';
+import 'package:top_talent_agency/core/services/token_storage_service.dart';
+import 'package:top_talent_agency/features/alert/data/alert_counts_model.dart';
 import 'package:top_talent_agency/features/alert/widget/custom_alert.dart';
 import 'package:top_talent_agency/features/alert/widget/custom_medium.dart';
 import '../../../common/custom_color.dart';
@@ -16,10 +20,14 @@ class AlertsScreen extends StatefulWidget {
 class _AlertsScreenState extends State<AlertsScreen> {
   int selectedIndex = 0;
   late final List<String> tabs;
+  bool isLoading = false;
+  AlertCountsModel? alertCounts;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _fetchAlerts();
 
     if (widget.role == UiUserRole.manager) {
       tabs = ['All', 'Under', 'Spike'];
@@ -27,6 +35,64 @@ class _AlertsScreenState extends State<AlertsScreen> {
       tabs = ['All', 'Under', 'Spike', 'Target', 'System'];
     } else {
       tabs = [];
+    }
+  }
+
+  Future<void> _fetchAlerts() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final token = await TokenStorageService.getStoredToken();
+      final dio = Dio();
+      
+      final response = await dio.get(
+        _getRoleWiseAlertUrl(widget.role),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        print('🔍 API Response for role ${widget.role}: $data');
+        
+        setState(() {
+          alertCounts = AlertCountsModel.fromJson(data);
+          isLoading = false;
+        });
+        
+        print('✅ Parsed: High=${alertCounts?.high}, Low=${alertCounts?.low}');
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load alerts (${response.statusCode})';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error: $e';
+        isLoading = false;
+      });
+      print('❌ Error fetching alerts: $e');
+    }
+  }
+
+  String _getRoleWiseAlertUrl(UiUserRole role) {
+    switch (role) {
+      case UiUserRole.admin:
+        return '${Urls.AI_Response_alertproblem}?role=admin';
+      case UiUserRole.manager:
+        return '${Urls.AI_Response_alertproblem}?role=manager';
+      case UiUserRole.creator:
+        return '${Urls.AI_Response_alertproblem}?role=creator';
+      default:
+        return Urls.AI_Response_alertproblem;
     }
   }
 
@@ -55,71 +121,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
             children: [
               const SizedBox(height: 15),
 
-              /// Medium card
-              const CustomMedium(),
-
-              const SizedBox(height: 20),
-
-              ///  Tabs UI (NOT for creator)
-              if (widget.role != UiUserRole.creator)
-                Container(
-                  height: 46,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF101828),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    children: List.generate(tabs.length, (index) {
-                      final bool isSelected = selectedIndex == index;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = index;
-                            });
-                          },
-                          child: Container(
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.black
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Text(
-                              tabs[index],
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-
-              if (widget.role != UiUserRole.creator)
-                const SizedBox(height: 15),
-
-              /// Gradient line
-              if (widget.role != UiUserRole.creator)
-              Container(
-                height: 1,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: AppColors.primaryGradient,
-                  ),
-                ),
+              /// Medium card with API data
+              CustomMedium(
+                high: alertCounts?.high ?? 0,
+                low: alertCounts?.low ?? 0,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
 
               /// Alerts list
               const CustomAlert(
@@ -187,5 +195,35 @@ class _AlertsScreenState extends State<AlertsScreen> {
         ),
       ),
     );
+  }
+
+  Color _getPriorityColor(String? priority) {
+    switch (priority?.toLowerCase()) {
+      case 'critical':
+        return const Color(0xffD4183D);
+      case 'high':
+        return const Color(0xffD4183D);
+      case 'medium':
+        return const Color(0xffFF6900);
+      case 'low':
+        return const Color(0xff00A63E);
+      default:
+        return const Color(0xffD4183D);
+    }
+  }
+
+  Color _getPriorityBgColor(String? priority) {
+    switch (priority?.toLowerCase()) {
+      case 'critical':
+        return const Color(0xffFFE2E2);
+      case 'high':
+        return const Color(0xffFFE2E2);
+      case 'medium':
+        return const Color(0xffFFEDD4);
+      case 'low':
+        return const Color(0xffE2F7E2);
+      default:
+        return const Color(0xffFFE2E2);
+    }
   }
 }

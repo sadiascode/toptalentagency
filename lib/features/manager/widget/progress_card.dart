@@ -4,8 +4,7 @@ Widget ProgressCard({
   required String title,
   required String subtitle,
   required double percent,
-  required String left,
-  required String right,
+
 }) {
   return
      Column(
@@ -40,20 +39,7 @@ Widget ProgressCard({
           backgroundColor: Colors.grey.shade200,
           color: const Color(0xff22C55E),
         ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(left, style: const TextStyle( color: Colors.white,fontSize: 12)),
-            Text(
-              right,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xff22C55E),
-              ),
-            ),
-          ],
-        )
+        const SizedBox(height: 9),
       ],
   );
 }

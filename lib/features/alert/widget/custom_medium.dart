@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 
 class CustomMedium extends StatelessWidget {
+  final int high;
+  final int low;
+
   const CustomMedium({
     super.key,
+    required this.high ,
+    required this.low,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+
           Container(
             width: 111,
             height: 56,
@@ -26,7 +32,7 @@ class CustomMedium extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  '16',
+                  '$high',
                   style: TextStyle(fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Color(0xffD4183D)),
@@ -34,34 +40,6 @@ class CustomMedium extends StatelessWidget {
                 Text(
                   'High',
                   style: TextStyle(fontSize: 12, color: Color(0xffD4183D)),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 5),
-          Container(
-            width: 111,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Color(0xff101828),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(
-                color: Color(0xffFF6900),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '2',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xffFF6900),),
-                ),
-                Text(
-                  'Medium',
-                  style: TextStyle(fontSize: 12, color: Color(0xffFF6900),),
                 ),
               ],
             ),
@@ -83,7 +61,7 @@ class CustomMedium extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  '0',
+                  '$low',
                   style: TextStyle
                     (fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xffFF9C17),),
                 ),

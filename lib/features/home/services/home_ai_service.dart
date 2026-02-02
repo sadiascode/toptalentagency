@@ -6,20 +6,20 @@ import '../data/home_ai_model.dart';
 
 class HomeAiService {
   // Get auth token using TokenStorageService
-  static String? _getAuthToken() {
-    return TokenStorageService.getStoredToken();
+  static Future<String?> _getAuthToken() async {
+    return await TokenStorageService.getStoredToken();
   }
 
   // Fetch AI response with alert summary role-wise
   static Future<AdminHomeAiModel?> fetchAiResponse(String role) async {
     try {
       final url = Urls.AI_Response_admin_manager_creator;
-      final token = _getAuthToken();
+      final token = await _getAuthToken();
       
       print('🤖 Home AI Service Debug:');
       print('   - URL: $url');
       print('   - Role: $role');
-      print('   - Token: ${token != null ? "Present (${token.length} chars)" : "Missing"}');
+      print('   - Token: ${token != null ? "Present (${token.length} chars)" : "Not found"}');
 
       final headers = {
         'Content-Type': 'application/json',

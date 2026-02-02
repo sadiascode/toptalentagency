@@ -5,6 +5,7 @@ import 'package:top_talent_agency/common/app_shell.dart';
 import 'package:top_talent_agency/core/roles.dart';
 import 'package:top_talent_agency/core/services/role_storage_service.dart';
 import 'package:top_talent_agency/core/services/token_storage_service.dart';
+import 'package:top_talent_agency/core/services/token_refresh_service.dart';
 import '../../../app/urls.dart';
 import '../../../core/services/network/network_client.dart';
 
@@ -116,26 +117,36 @@ class LoginController extends GetxController {
       }
     }
 
-    // Store token using TokenStorageService
+        // Store token if found
     if (authToken != null && authToken.isNotEmpty) {
-      await TokenStorageService.storeToken(authToken!);
+      final box = GetStorage();
+      await box.write('token', authToken);
+      await box.write('access_token', authToken);
+      await box.write('access', authToken); // Store with 'access' key too
       
-      // Show token info for debugging
-      final tokenInfo = TokenStorageService.getTokenInfo();
-      print('📊 Token Info: $tokenInfo');
+      // Verify storage
+      final storedToken = box.read('access');
+      final storedToken2 = box.read('token');
+      
+      print("✅ Token stored successfully: ${authToken.length} characters");
+      print("🔑 Stored with keys: token, access_token, access");
+      print("🔍 Verification - access token: ${storedToken != null ? "Found (${storedToken.length} chars)" : "Missing"}");
+      print("🔍 Verification - token: ${storedToken2 != null ? "Found (${storedToken2.length} chars)" : "Missing"}");
+      print("📦 All storage keys: ${box.getKeys()}");
     } else {
-      print("⚠️ No token found in normal extraction");
+      print("⚠️ No token found in response");
       
-      // Force store from login response
-      await TokenStorageService.forceStoreFromLoginResponse(data);
-      
-      // Check if force store worked
-      if (TokenStorageService.hasStoredToken()) {
-        print("✅ Force store successful!");
-        final tokenInfo = TokenStorageService.getTokenInfo();
-        print('📊 Token Info after force store: $tokenInfo');
-      } else {
-        print("❌ Force store failed - no token stored");
+      // Try to manually extract token from the access field if it exists
+      if (data['access'] != null) {
+        final manualToken = data['access'].toString();
+        if (manualToken.isNotEmpty) {
+          print("🔧 Manual token extraction from 'access' field");
+          final box = GetStorage();
+          await box.write('access', manualToken);
+          await box.write('token', manualToken);
+          await box.write('access_token', manualToken);
+          print("🔧 Manual token stored: ${manualToken.length} chars");
+        }
       }
     }
 
@@ -215,6 +226,16 @@ class LoginController extends GetxController {
       print("🔄 Attempted to re-store role");
     } else {
       print("✅ Role stored successfully");
+    }
+
+    // Token refresh only
+    print("🔄 Starting token refresh...");
+    bool refreshSuccess = await TokenRefreshService.refreshToken();
+    
+    if (refreshSuccess) {
+      print("✅ Token refresh completed successfully");
+    } else {
+      print("⚠️ Token refresh failed, but continuing with login");
     }
 
     // Navigate to AppShell

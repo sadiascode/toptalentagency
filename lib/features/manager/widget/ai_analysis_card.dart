@@ -34,22 +34,6 @@ class AiAnalysisCard extends StatelessWidget {
                 "AI Analysis",
                 style: TextStyle(color:Colors.white,fontWeight: FontWeight.w600),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xff620041),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  "Updated 2h ago",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                  ),
-                ),
-              )
             ],
           ),
           const SizedBox(height: 10),

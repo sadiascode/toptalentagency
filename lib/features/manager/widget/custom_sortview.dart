@@ -3,15 +3,29 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:top_talent_agency/core/roles.dart';
 import 'package:top_talent_agency/features/manager/screen/manager_details_screen.dart';
 import 'package:top_talent_agency/features/manager/screen/view_assign_creator_screen.dart';
-import 'package:top_talent_agency/features/manager/widget/custom_text.dart';
+import 'package:top_talent_agency/features/admin/data/manager_dashboard_model.dart';
+import 'package:top_talent_agency/features/manager/data/manager_model.dart';
 
 import '../../../common/custom_color.dart';
 
 class CustomSortview extends StatelessWidget {
-  const CustomSortview({super.key});
+  final ManagerInfo? managerInfo;
+
+  const CustomSortview({super.key, this.managerInfo});
 
   @override
   Widget build(BuildContext context) {
+    // Use backend data if available, otherwise use defaults
+    final String username = managerInfo?.name ?? 'Sarah Johnson';
+    final String email = managerInfo?.email ?? 'sarah@example.com';
+    final String profileImage = managerInfo?.profileImage ?? '';
+    final int myCreators = managerInfo?.myCreatorsValue ?? 120;
+    final int rank = managerInfo?.score ?? 1;
+    final int atRisk = managerInfo?.atRisk ?? 48;
+    final int excellent = managerInfo?.excellentValue ?? 72;
+    
+    // Create ManagerModel for navigation
+    final managerModel = managerInfo != null ? ManagerModel.fromManagerInfo(managerInfo!.toJson()) : null;
     return Container(
         padding: const EdgeInsets.all(1.5),
         decoration: BoxDecoration(
@@ -23,7 +37,7 @@ class CustomSortview extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Container(
-          height: 320,
+          height: 214,
           width: 382,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -38,35 +52,51 @@ class CustomSortview extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const ManagerDetailsScreen(),
+                  builder: (_) => ManagerDetailsScreen(
+                    managerModel: managerModel,
+                  ),
                 ),
               );
             },
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200',
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                  ),
+                ClipOval(
+                  child: profileImage.isNotEmpty
+                      ? Image.network(
+                          profileImage,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 48,
+                              height: 48,
+                              color: Colors.grey[600],
+                              child: Icon(Icons.person, color: Colors.white),
+                            );
+                          },
+                        )
+                      : Container(
+                          width: 48,
+                          height: 48,
+                          color: Colors.grey[600],
+                          child: Icon(Icons.person, color: Colors.white),
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
+                    children: [
                       Text(
-                        'Sarah Johnson',
+                        username,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
-                      Icon(
+                      const Icon(
                         Icons.chevron_right,
                         color: Colors.white,
                         size: 28,
@@ -92,20 +122,20 @@ class CustomSortview extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
-                          '120',
+                          myCreators.toString(),
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
                         Text(
-                          'Creators',
+                          'My Creators',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
+                            fontSize: 14,
+                            color: Color.fromRGBO(255, 255, 255, 0.7),
                           ),
                         ),
                       ],
@@ -126,9 +156,9 @@ class CustomSortview extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
-                        '72',
+                        excellent.toString(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -159,9 +189,9 @@ class CustomSortview extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
-                        '48',
+                        atRisk.toString(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -189,8 +219,9 @@ class CustomSortview extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const ViewAssignCreatorsScreen(
+                  builder: (_) => ViewAssignCreatorsScreen(
                     role: UiUserRole.admin,
+                    managerModel: managerModel,
                   ),
                 ),
               );
@@ -232,18 +263,7 @@ class CustomSortview extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Container(
-            height: 1.5,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: AppColors.primaryGradient,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          CustomText(),
+
           ],
         ),
       ),

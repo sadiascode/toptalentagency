@@ -4,8 +4,7 @@ class CustomRankcoin extends StatelessWidget {
   final String rank;
   final String name;
   final String hours;
-  final String followers;
-  final String coins;
+  final String Diamond;
   final bool isIncreasing;
 
   const CustomRankcoin({
@@ -13,8 +12,7 @@ class CustomRankcoin extends StatelessWidget {
     required this.rank,
     required this.name,
     required this.hours,
-    required this.followers,
-    required this.coins,
+    required this.Diamond,
     this.isIncreasing = true,
   });
 
@@ -54,14 +52,7 @@ class CustomRankcoin extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '$hours • $followers',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                  ),
-                ),
+
               ],
             ),
           ),
@@ -72,7 +63,7 @@ class CustomRankcoin extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    coins,
+                    Diamond,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -81,7 +72,7 @@ class CustomRankcoin extends StatelessWidget {
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    'coins',
+                    'Diamond',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.white70,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:top_talent_agency/common/custom_button.dart';
 import 'package:top_talent_agency/core/roles.dart';
-import 'package:top_talent_agency/features/more/screen/add_screen.dart';
 import 'package:top_talent_agency/features/more/screen/edit_screen.dart';
 import 'package:top_talent_agency/features/more/widget/custom_more.dart';
+import 'package:top_talent_agency/features/more/services/user_profile_service.dart';
+import 'package:top_talent_agency/features/more/data/user_profile_model.dart';
 
 import '../../../common/custom_color.dart';
 import '../../auth/ui/screens/login_screen.dart';
@@ -20,6 +21,27 @@ class _MoreScreenState extends State<MoreScreen> {
   bool get isAdmin => widget.role == UiUserRole.admin;
   bool pushNotification = true;
   bool emailNotification = false;
+  
+  // User profile data
+  UserProfileModel? userProfile;
+  bool isLoadingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    print('=== FETCHING USER PROFILE ===');
+    final profile = await UserProfileService.getUserProfile();
+    if (mounted) {
+      setState(() {
+        userProfile = profile;
+        isLoadingProfile = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +81,7 @@ class _MoreScreenState extends State<MoreScreen> {
               ),
                     child: Row(
                       children: [
-                        // img
+                        // Profile Image
                         Container(
                           width: 56,
                           height: 56,
@@ -68,10 +90,15 @@ class _MoreScreenState extends State<MoreScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: ClipOval(
-                            child: Image.network(
-                              'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200',
-                              fit: BoxFit.cover,
-                            ),
+                            child: userProfile?.profileImage != null
+                                ? Image.network(
+                                    userProfile!.profileImage!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(Icons.person, size: 30, color: Colors.grey[600]);
+                                    },
+                                  )
+                                : Icon(Icons.person, size: 30, color: Colors.grey[600]),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -81,7 +108,7 @@ class _MoreScreenState extends State<MoreScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Admin User',
+                                isLoadingProfile ? 'Loading...' : (userProfile?.name ?? 'User'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -90,7 +117,7 @@ class _MoreScreenState extends State<MoreScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'admin@company.com',
+                                isLoadingProfile ? 'Loading...' : (userProfile?.email ?? 'user@example.com'),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white,
@@ -105,7 +132,7 @@ class _MoreScreenState extends State<MoreScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  'Super Admin',
+                                  isLoadingProfile ? 'Loading...' : (userProfile?.role ?? 'User').toUpperCase(),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -118,13 +145,14 @@ class _MoreScreenState extends State<MoreScreen> {
                         ),
                     InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      onTap: () { Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>  EditScreen(role: widget.role),
-                        ),
-                      );
-                        },
+                      onTap: () { 
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>  EditScreen(role: widget.role),
+                          ),
+                        );
+                      },
                       child:Container(
                           padding: EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
@@ -132,14 +160,31 @@ class _MoreScreenState extends State<MoreScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
                            ),
-                          child: Text('Edit', style:
-                          TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                            ),
+                          child: Row(
+                            children: [
+                              Text('Edit', style:
+                              TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                                ),
+                              ),
+                              if (!isLoadingProfile) ...[
+                                SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    _fetchUserProfile(); // Refresh profile
+                                  },
+                                  child: Icon(
+                                    Icons.refresh,
+                                    size: 16,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                           ),
                         ),
-                       ),
                       ],
                     ),
                   ),

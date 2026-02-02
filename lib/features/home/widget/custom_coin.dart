@@ -4,8 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../common/custom_color.dart';
 
 class CustomCoin extends StatelessWidget {
+  final String? totalHour;
+  final String? totalDiamondAchieve;
+  
   const CustomCoin({
     super.key,
+    this.totalHour,
+    this.totalDiamondAchieve,
   });
 
   @override
@@ -13,10 +18,10 @@ class CustomCoin extends StatelessWidget {
     return Container(
       height: 231,
       width: 385,
-      padding: const EdgeInsets.all(1.5), // gradient border thickness
+      padding: const EdgeInsets.all(1.5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: AppColors.primaryGradient, //  gradient border
+          colors: AppColors.primaryGradient,
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -61,7 +66,7 @@ class CustomCoin extends StatelessWidget {
               ),
               Spacer(),
               Text(
-                '13.78M',
+                totalDiamondAchieve ?? '13.78M',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -76,7 +81,7 @@ class CustomCoin extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: 0.87,
+              value: 8,
               minHeight: 8,
               backgroundColor: Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
@@ -100,7 +105,7 @@ class CustomCoin extends StatelessWidget {
               ),
               Spacer(),
               Text(
-                '139.7K',
+                totalHour ?? '139.7K',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -115,7 +120,7 @@ class CustomCoin extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: 0.85,
+              value: 8,
               minHeight: 8,
               backgroundColor: Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),

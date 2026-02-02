@@ -1,40 +1,30 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common/custom_color.dart';
-import '../../data/target_request_model.dart';
-
 
 class CustomTargets extends StatelessWidget {
   final String title;
   final Color progressBarColor;
   final Color containerColor;
-  final AgencyDashboard? dashboardData;
+  final int? diamonds;
+  final double? Hours;
 
   const CustomTargets({
     super.key,
     this.title = 'December 2025',
     this.progressBarColor = const Color(0xff155DFC),
     this.containerColor = const Color(0xFF002370),
-    this.dashboardData,
+    this.diamonds,
+    this.Hours,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Use API data if available, otherwise use mock data
-    final totalCreators = dashboardData?.totalCreatorsAssigned ?? 1247;
-    final diamondsProgress = dashboardData?.diamondsProgress;
-    final hoursProgress = dashboardData?.hoursProgress;
-    
-    final diamondPercentage = diamondsProgress?.percentage ?? 87.1;
-    final diamondCurrent = diamondsProgress?.current ?? 82750000;
-    final diamondTarget = diamondsProgress?.target ?? 95000000;
-    
-    final hourPercentage = hoursProgress?.percentage ?? 88.7;
-    final hourCurrent = hoursProgress?.current ?? 119800;
-    final hourTarget = hoursProgress?.target ?? 135000;
+    final diamondCurrent = diamonds ?? 0;
+    final hourCurrent = Hours ?? 0.0;
 
     return Container(
-        height: 240,
+        height: 200,
         padding: const EdgeInsets.all(1.5),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -61,14 +51,7 @@ class CustomTargets extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            '$totalCreators creators assigned',
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.white,
-            ),
-          ),
+
           const SizedBox(height: 17),
 
           // Diamonds Progress (changed from Coins)
@@ -84,7 +67,7 @@ class CustomTargets extends StatelessWidget {
                 ),
               ),
               Text(
-                '${diamondPercentage.toStringAsFixed(1)}%',
+                _formatNumber(diamondCurrent.toDouble()),
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.white,
@@ -96,7 +79,7 @@ class CustomTargets extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: diamondPercentage / 100,
+              value: 100 / 100,
               minHeight: 12,
               backgroundColor: const Color(0xFFE0E0E0),
               valueColor: AlwaysStoppedAnimation<Color>(progressBarColor),
@@ -116,7 +99,7 @@ class CustomTargets extends StatelessWidget {
                 ),
               ),
               Text(
-                '${hourPercentage.toStringAsFixed(1)}%',
+                _formatNumber(hourCurrent),
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.white,
@@ -128,21 +111,18 @@ class CustomTargets extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: hourPercentage / 100,
+              value: 100 / 100,
               minHeight: 12,
               backgroundColor: const Color(0xFFE0E0E0),
               valueColor: AlwaysStoppedAnimation<Color>(progressBarColor),
             ),
           ),
-
-
         ],
       ),
         ),
     );
   }
 
-  // Helper method to format numbers with K, M suffixes
   String _formatNumber(double number) {
     if (number >= 1000000) {
       return '${(number / 1000000).toStringAsFixed(1)}M';
@@ -152,13 +132,3 @@ class CustomTargets extends StatelessWidget {
     return number.toInt().toString();
   }
 }
-
-// Example usage:
-// CustomTargets() // Default colors
-//
-// CustomTargets(
-//   year: 'January 2026',
-//   progressBarColor: Colors.green,
-//   containerColor: Color(0xFFE8F5E9),
-//   containerBorderColor: Color(0xFFA5D6A7),
-// )

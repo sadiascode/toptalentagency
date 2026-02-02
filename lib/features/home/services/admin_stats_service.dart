@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../app/urls.dart';
 import '../../../core/services/token_storage_service.dart';
-import '../data/home_ai_model.dart';
+import '../data/admin_stats_model.dart';
 
 class AdminStatsService {
-  static Future<AdminStats?> fetchAdminStats() async {
+  static Future<AdminStatsModel?> fetchAdminStats() async {
     try {
       final token = await TokenStorageService.getStoredToken();
       print('🔍 Admin Stats Service Debug:');
@@ -28,13 +28,14 @@ class AdminStatsService {
         print('✅ Admin Stats Data: $responseData');
 
         // Extract admin stats from response
-        final adminStats = AdminStats.fromJson(responseData);
+        final adminStats = AdminStatsModel.fromJson(responseData);
         
         print('✅ Admin Stats Parsed:');
-        print('   - Total Diamonds: ${adminStats.totalDiamonds}');
-        print('   - Total Managers: ${adminStats.totalManagers}');
         print('   - Total Creators: ${adminStats.totalCreators}');
-        print('   - Total Scrap: ${adminStats.totalScrap}');
+        print('   - Total Managers: ${adminStats.totalManagers}');
+        print('   - Scrape Today: ${adminStats.scrapeToday}');
+        print('   - Total Diamond Achieve: ${adminStats.totalDiamondAchieve}');
+        print('   - Total Hour: ${adminStats.totalHour}');
         
         return adminStats;
       } else {

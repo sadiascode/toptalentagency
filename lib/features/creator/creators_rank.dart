@@ -206,8 +206,7 @@ class CreatorsRank extends StatelessWidget {
                     rank: '1',
                     name: "Sara",
                     hours: '10.5h',
-                    followers: '50,000 followers',
-                    coins: '3,500',
+                      Diamond: '3,500',
                   ),
 
                   const SizedBox(height: 10),
@@ -222,8 +221,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '4',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,880'
+                              Diamond: '1,880'
                           ),
                           SizedBox(height: 20),
 
@@ -231,8 +229,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '5',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
 
@@ -240,8 +237,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '6',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
 
@@ -249,8 +245,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '7',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
 
@@ -258,8 +253,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '8',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
 
@@ -267,8 +261,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '9',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
 
@@ -276,8 +269,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '10',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
 
@@ -285,8 +277,7 @@ class CreatorsRank extends StatelessWidget {
                               rank: '11',
                               name: "Sarah Johnson",
                               hours: '5.6h',
-                              followers: '18,200 followers',
-                              coins: '1,743'
+                              Diamond: '1,743'
                           ),
                           SizedBox(height: 20),
                             ]

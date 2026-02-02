@@ -1,16 +1,16 @@
-// admin_stats_model.dart
-
 class AdminStatsModel {
   final int totalCreators;
   final int totalManagers;
   final int scrapeToday;
   final int totalDiamondAchieve;
+  final double totalHour;
 
   AdminStatsModel({
     required this.totalCreators,
     required this.totalManagers,
     required this.scrapeToday,
     required this.totalDiamondAchieve,
+    required this.totalHour,
   });
 
   factory AdminStatsModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +19,7 @@ class AdminStatsModel {
       totalManagers: json['total_managers'] ?? 0,
       scrapeToday: json['scrape_today'] ?? 0,
       totalDiamondAchieve: json['total_diamond_achieve'] ?? 0,
+      totalHour: double.tryParse(json['total_hour'].toString()) ?? 0.0,
     );
   }
 
@@ -28,76 +29,29 @@ class AdminStatsModel {
       'total_managers': totalManagers,
       'scrape_today': scrapeToday,
       'total_diamond_achieve': totalDiamondAchieve,
+      'total_hour': totalHour,
     };
   }
 
-  // Formatted values for UI
-  String get totalCreatorsFormatted {
-    if (totalCreators >= 1000) {
-      return '${(totalCreators / 1000).toStringAsFixed(1)}K';
-    }
-    return totalCreators.toString();
-  }
-
-  String get totalManagersFormatted {
-    if (totalManagers >= 1000) {
-      return '${(totalManagers / 1000).toStringAsFixed(1)}K';
-    }
-    return totalManagers.toString();
-  }
-
-  String get scrapeTodayFormatted {
-    if (scrapeToday >= 1000000) {
-      return '${(scrapeToday / 1000000).toStringAsFixed(1)}M';
-    } else if (scrapeToday >= 1000) {
-      return '${(scrapeToday / 1000).toStringAsFixed(1)}K';
-    }
-    return scrapeToday.toString();
-  }
-
-  String get totalDiamondAchieveFormatted {
+  // Format totalDiamondAchieve as million/thousand
+  String get formattedDiamondAchieve {
     if (totalDiamondAchieve >= 1000000) {
-      return '${(totalDiamondAchieve / 1000000).toStringAsFixed(1)}M';
+      return '${(totalDiamondAchieve / 1000000).toStringAsFixed(2)}M';
     } else if (totalDiamondAchieve >= 1000) {
       return '${(totalDiamondAchieve / 1000).toStringAsFixed(1)}K';
+    } else {
+      return totalDiamondAchieve.toString();
     }
-    return totalDiamondAchieve.toString();
   }
 
-  // With comma separator (like screenshot: 45,623)
-  String get scrapeTodayWithComma {
-    return scrapeToday.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-    );
-  }
-
-  String get totalDiamondWithComma {
-    return totalDiamondAchieve.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-    );
-  }
-
-  String get totalCreatorsWithComma {
-    return totalCreators.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-    );
-  }
-
-  // Helper methods
-  bool get hasManagers => totalManagers > 0;
-  bool get hasCreators => totalCreators > 0;
-  bool get hasScrapedToday => scrapeToday > 0;
-  bool get hasDiamonds => totalDiamondAchieve > 0;
-
-  double get creatorsPerManager {
-    if (totalManagers == 0) return 0;
-    return totalCreators / totalManagers;
-  }
-
-  String get creatorsPerManagerFormatted {
-    return creatorsPerManager.toStringAsFixed(1);
+  // Format totalHour as million/thousand
+  String get formattedHour {
+    if (totalHour >= 1000000) {
+      return '${(totalHour / 1000000).toStringAsFixed(2)}M';
+    } else if (totalHour >= 1000) {
+      return '${(totalHour / 1000).toStringAsFixed(1)}K';
+    } else {
+      return totalHour.toStringAsFixed(1);
+    }
   }
 }

@@ -4,8 +4,11 @@ import 'package:top_talent_agency/core/roles.dart';
 import 'package:top_talent_agency/core/services/role_storage_service.dart';
 import 'package:top_talent_agency/features/home/controller/admin/manager_controller.dart';
 import 'package:top_talent_agency/features/home/data/home_ai_model.dart';
+import 'package:top_talent_agency/features/home/data/admin_stats_model.dart';
 import 'package:top_talent_agency/features/home/services/home_ai_service.dart';
 import 'package:top_talent_agency/features/home/services/admin_stats_service.dart';
+import 'package:top_talent_agency/features/more/services/user_profile_service.dart';
+import 'package:top_talent_agency/features/more/data/user_profile_model.dart';
 import 'package:top_talent_agency/features/home/widget/custom_alerts.dart';
 import 'package:top_talent_agency/features/home/widget/custom_both.dart';
 import 'package:top_talent_agency/features/home/widget/custom_coin.dart';
@@ -24,21 +27,33 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   AdminHomeAiModel? aiData;
+  AdminStatsModel? adminStats;
   bool isLoading = false;
   String? errorMessage;
   late ManagerController managerController;
+  
+  // User profile data
+  UserProfileModel? userProfile;
+  bool isLoadingProfile = true;
 
   @override
   void initState() {
     super.initState();
-    print('🏠 initState called');
-    print('   - Is Admin: $isAdmin');
+    _fetchUserProfile();
     _fetchAiData();
     if (isAdmin) {
-      print('🏠 Calling _fetchAdminStats...');
       _fetchAdminStats();
-    } else {
-      print('🏠 Not admin, skipping admin stats fetch');
+    }
+  }
+
+  Future<void> _fetchUserProfile() async {
+    print('=== HOME SCREEN: FETCHING USER PROFILE ===');
+    final profile = await UserProfileService.getUserProfile();
+    if (mounted) {
+      setState(() {
+        userProfile = profile;
+        isLoadingProfile = false;
+      });
     }
   }
 
@@ -81,18 +96,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _fetchAdminStats() async {
     try {
       print(' Home Screen: Fetching admin stats...');
-      final adminStats = await AdminStatsService.fetchAdminStats();
+      final stats = await AdminStatsService.fetchAdminStats();
       
-      if (adminStats != null && aiData != null) {
+      if (stats != null) {
         setState(() {
-          // Update existing aiData with new admin stats
-          aiData = AdminHomeAiModel(
-            welcomeMsg: aiData!.welcomeMsg,
-            dailySummary: aiData!.dailySummary,
-            adminStats: adminStats,
-          );
+          adminStats = stats;
         });
         print(' Home Screen: Admin stats updated successfully');
+        print('   - Total Creators: ${stats.totalCreators}');
+        print('   - Total Managers: ${stats.totalManagers}');
+        print('   - Scrape Today: ${stats.scrapeToday}');
+        print('   - Total Diamond Achieve: ${stats.totalDiamondAchieve}');
+        print('   - Total Hour: ${stats.totalHour}');
       }
     } catch (e) {
       print(' Home Screen: Error fetching admin stats - $e');
@@ -138,15 +153,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.grey[200],
                   ),
                   child: ClipOval(
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      color: Colors.grey[300],
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    child: userProfile?.profileImage != null
+                        ? Image.network(
+                            userProfile!.profileImage!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: Icon(Icons.person, size: 24, color: Colors.grey[600]),
+                              );
+                            },
+                          )
+                        : Container(
+                            color: Colors.grey[300],
+                            child: Icon(Icons.person, size: 24, color: Colors.grey[600]),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 15),
@@ -155,11 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      widget.role == UiUserRole.admin
-                          ? 'Akhil Doe'
-                          : widget.role == UiUserRole.manager
-                          ? 'Sarah Johnson'
-                          : 'John Doe',
+                      isLoadingProfile ? 'Loading...' : (userProfile?.name ?? 'User'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -167,11 +184,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Text(
-                      widget.role == UiUserRole.admin
-                          ? 'Welcome back, Admin'
-                          : widget.role == UiUserRole.manager
-                          ? 'Welcome back, Manager'
-                          : 'Welcome back, Creator',
+                      isLoadingProfile 
+                          ? 'Loading...'
+                          : 'Welcome back, ${userProfile?.role ?? 'User'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xffA2A3A3),
@@ -271,26 +286,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     CustomMinicontainer(
                       title: "Total Creators",
                       iconPath: 'assets/user.svg',
-                      number: aiData?.adminStats.totalCreators ?? 1000,
+                      number: adminStats?.totalCreators ?? 0,
                     ),
                     SizedBox(width: 9),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Obx(() {
-                        if (managerController.isLoading.value) {
-                          return CustomMinicontainer(
-                            title: "Managers",
-                            iconPath: 'assets/m.svg',
-                            number: aiData?.adminStats.totalManagers ?? 0,
-                          );
-                        } else {
-                          return CustomMinicontainer(
-                            title: "Managers",
-                            iconPath: 'assets/m.svg',
-                            number: aiData?.adminStats.totalManagers ?? managerController.managerCount.value,
-                          );
-                        }
-                      }),
+                    CustomMinicontainer(
+                      title: "Total Managers",
+                      iconPath: 'assets/m.svg',
+                      number: adminStats?.totalManagers ?? 0,
                     ),
                   ],
                 ),
@@ -298,15 +300,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     CustomMinicontainer(
-                      title: "Total Diamonds",
-                      iconPath: 'assets/coin.svg',
-                      number: aiData?.adminStats.totalDiamonds ?? 240,
+                      title: "Scrape Today",
+                      iconPath: 'assets/clock.svg',
+                      number: adminStats?.scrapeToday ?? 0,
                     ),
                     SizedBox(width: 9),
                     CustomMinicontainer(
-                      title: "Total Scrap",
-                      iconPath: 'assets/clock.svg',
-                      number: aiData?.adminStats.totalScrap ?? 45623,
+                      title: "Total Diamond ",
+                      iconPath: 'assets/coin.svg',
+                      number: adminStats?.totalDiamondAchieve ?? 0,
                     ),
                   ],
                 ),
@@ -327,10 +329,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
               SizedBox(height: 5),
-              CustomPichart(),
+              if (isAdmin)
+                CustomPichart(
+                  diamondValue: adminStats?.formattedDiamondAchieve ?? '0',
+                )
+              else
+                CustomPichart(),
 
               SizedBox(height: 25),
-              CustomCoin(),
+              if (isAdmin)
+                CustomCoin(
+                  totalHour: adminStats?.formattedHour ?? '0',
+                  totalDiamondAchieve: adminStats?.formattedDiamondAchieve ?? '0',
+                )
+              else
+                CustomCoin(),
 
               SizedBox(height: 20),
               CustomAlerts(

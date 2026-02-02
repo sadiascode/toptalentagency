@@ -197,71 +197,71 @@ class SarasRank extends StatelessWidget {
                     SizedBox(height: 10),
                     CustomRankcoin(
                         rank: '4', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '5', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '6', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '7', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '8', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '9', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '10', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '11', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '12', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
 
                     CustomRankcoin(
                         rank: '13', name: "Sarah Johnson",
-                        hours: '5.6h', followers: '18,200 followers',
-                        coins: '1,743'
+                        hours: '5.6h',
+                        Diamond: '1,743'
                     ),
                     SizedBox(height: 20),
                   ]

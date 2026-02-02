@@ -1,18 +1,95 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:top_talent_agency/features/manager/screen/creator_details_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:top_talent_agency/features/manager/screen/saras_rank.dart';
 import 'package:top_talent_agency/core/roles.dart';
+import 'package:top_talent_agency/features/manager/data/manager_model.dart';
+import 'package:top_talent_agency/features/manager/data/single_creator_model.dart';
+import 'package:top_talent_agency/app/urls.dart';
+import 'package:top_talent_agency/core/services/token_storage_service.dart';
 import '../../../common/custom_color.dart';
 import '../widget/custom_search.dart';
 
-class ViewAssignCreatorsScreen extends StatelessWidget {
+class ViewAssignCreatorsScreen extends StatefulWidget {
   final UiUserRole role;
+  final ManagerModel? managerModel;
 
   const ViewAssignCreatorsScreen({
     super.key,
     required this.role,
+    this.managerModel,
   });
+
+  @override
+  State<ViewAssignCreatorsScreen> createState() => _ViewAssignCreatorsScreenState();
+}
+
+class _ViewAssignCreatorsScreenState extends State<ViewAssignCreatorsScreen> {
+  bool isLoading = false;
+  List<SingleCreatorModel> creators = [];
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.managerModel?.id != null) {
+      _fetchCreators();
+    }
+  }
+
+  Future<void> _fetchCreators() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final token = await TokenStorageService.getStoredToken();
+      final dio = Dio();
+
+      final response = await dio.get(
+        Urls.getCreatorByManagerId(int.tryParse(widget.managerModel!.id!) ?? 0),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        print('🔍 Creators API Response: $data');
+
+        List<SingleCreatorModel> creatorList = [];
+
+        if (data is List) {
+          creatorList = data.map((item) => SingleCreatorModel.fromJson(item)).toList();
+        } else if (data['data'] is List) {
+          creatorList = (data['data'] as List).map((item) => SingleCreatorModel.fromJson(item)).toList();
+        }
+
+        setState(() {
+          creators = creatorList;
+          isLoading = false;
+        });
+
+        print('✅ Parsed ${creators.length} creators');
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load creators (${response.statusCode})';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error: $e';
+        isLoading = false;
+      });
+      print('❌ Error fetching creators: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +100,9 @@ class ViewAssignCreatorsScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         title: Text(
-          role == UiUserRole.manager
+          widget.role == UiUserRole.manager
               ? "My Creators"
-              : "Sarah’s creators",
+              : "${widget.managerModel?.username ?? 'Sarah'}'s creators",
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -33,7 +110,7 @@ class ViewAssignCreatorsScreen extends StatelessWidget {
           ),
         ),
 
-        leading: role == UiUserRole.manager
+        leading: widget.role == UiUserRole.manager
             ? null
             : IconButton(
           onPressed: () {
@@ -59,7 +136,7 @@ class ViewAssignCreatorsScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Showing 20 of 20 managers",
+                  "Showing ${creators.length} of ${creators.length} creators",
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white,
@@ -89,70 +166,62 @@ class ViewAssignCreatorsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            _creatorCard(
-              context: context,
-              name: "djes.yt",
-              status: "Excellent",
-              statusTextColor: Color(0xff008236),
-              statusColor: Color(0xffDCFCE7),
-              manager: "Sarah Johnson",
-              coins: "💰12.9K / 14.3K",
-              hours: "⏱️154h / 134h",
-              progressColor: Color(0xff22C55E),
-              success: true,
-            ),
+            // Show creators from API
+            ...creators.map((creator) {
+              print('👤 Creator: ${creator.username}, Diamonds: ${creator.totalDiamond}, Hours: ${creator.totalHour}');
+              return _creatorCard(
+                context: context,
+                name: creator.username,
+                manager: creator.managerUsername,
+                diamonds: creator.totalDiamond.toString(),
+                hours: creator.totalHour.toString(),
+                creatorId: creator.id,
+              );
+            }).toList(),
 
-            _creatorCard(
-              context: context,
-              name: "sarah.h",
-              status: "Underperforming",
-              statusTextColor: Colors.white,
-              statusColor: Color(0xffDC2626),
-              manager: "Emily Rodriguez",
-              coins: "💰 6.3K / 10.5K",
-              hours: "⏱️72h / 112h",
-              progressColor: Color(0xffDC2626),
-              success: false,
-            ),
-
-            _creatorCard(
-              context: context,
-              name: "djes.yt",
-              status: "Good",
-              statusTextColor: Color(0xff1447E6),
-              statusColor:Colors.white,
-              manager: "Emily Rodriguez",
-              coins: "💰 12.9K / 14.3K",
-              hours: "⏱️97h / 103h",
-              progressColor: Color(0xff3B82F6),
-              success: true,
-            ),
-
-            _creatorCard(
-              context: context,
-              name: "sarah.h",
-              status: "Underperforming",
-              statusTextColor: Colors.white,
-              statusColor: Color(0xffDC2626),
-              manager: "Emily Rodriguez",
-              coins: "💰 6.3K / 10.5K",
-              hours: "⏱️72h / 112h",
-              progressColor: Color(0xffDC2626),
-              success: false,
-            ),
-
-            _creatorCard(
-              context: context,
-              name: "djes.yt",
-              status: "Good",
-              statusTextColor:Color(0xff1447E6),
-              statusColor: Colors.white,
-              manager: "Emily Rodriguez",
-              coins: "💰 12.9K / 14.3K",
-              hours: "⏱️97h / 103h",
-              progressColor: Color(0xff3B82F6),
-              success: true,
-            ),
+            // Fallback static creators if no API data
+            if (creators.isEmpty) ...[
+              _creatorCard(
+                context: context,
+                name: "djes.yt",
+                manager: "Sarah Johnson",
+                diamonds: "12",
+                hours: "15",
+                creatorId: null,
+              ),
+              _creatorCard(
+                context: context,
+                name: "sarah.h",
+                manager: "Emily Rodriguez",
+                diamonds: "6",
+                hours: "11",
+                creatorId: null,
+              ),
+              _creatorCard(
+                context: context,
+                name: "djes.yt",
+                manager: "Emily Rodriguez",
+                diamonds: "3",
+                hours: "9",
+                creatorId: null,
+              ),
+              _creatorCard(
+                context: context,
+                name: "sarah.h",
+                manager: "Emily Rodriguez",
+                diamonds: "34",
+                hours: "11",
+                creatorId: null,
+              ),
+              _creatorCard(
+                context: context,
+                name: "djes.yt",
+                manager: "Emily Rodriguez",
+                diamonds: "11",
+                hours: "10",
+                creatorId: null,
+              ),
+            ],
           ],
         ),
       ),
@@ -162,21 +231,17 @@ class ViewAssignCreatorsScreen extends StatelessWidget {
   Widget _creatorCard({
     required BuildContext context,
     required String name,
-    required String status,
-    required Color statusTextColor,
-    required Color statusColor,
     required String manager,
-    required String coins,
+    required String diamonds,
     required String hours,
-    required Color progressColor,
-    required bool success,
+    int? creatorId,
   }) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => CreatorDetailsScreen()),
+          MaterialPageRoute(builder: (_) => CreatorDetailsScreen(creatorId: creatorId)),
         );
       },
       child: Container(
@@ -196,93 +261,95 @@ class ViewAssignCreatorsScreen extends StatelessWidget {
             color: Colors.black,
             borderRadius: BorderRadius.circular(14),
           ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage(
-                    "https://i.pravatar.cc/150?img=12",
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: NetworkImage(
+                      "https://i.pravatar.cc/150?img=12",
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.white),
-                          ),
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.white),
                             ),
-                            decoration: BoxDecoration(
-                              color: statusColor,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              status,
-                              style:  TextStyle(
-                                color: statusTextColor,
-                                fontSize: 10,
+                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Manager: $manager",
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Manager: $manager",
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "$coins      $hours",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                            color: Colors.white
+                        const SizedBox(height: 4),
+                        Text(
+                          "$diamonds      $hours",
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      const Icon(Icons.chevron_right, color: Colors.white),
                     ],
                   ),
-                ),
-                Column(
-                  children: [
-                    Icon(
-                      success ? Icons.check_circle : Icons.error,
-                      color: success
-                          ? const Color(0xff22C55E)
-                          : const Color(0xffDC2626),
-                      size: 18,
-                    ),
-                    const SizedBox(height: 6),
-                    const Icon(Icons.chevron_right, color: Colors.white),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            LinearProgressIndicator(
-              value: success ? 1 : 0.6,
-              minHeight: 4,
-              backgroundColor: Colors.grey.shade200,
-              color: progressColor,
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-      ),
     );
+  }
+
+  String _getCreatorStatus(int rank) {
+    if (rank <= 3) return "Excellent";
+    if (rank <= 10) return "Good";
+    return "Underperforming";
+  }
+
+  Color _getStatusTextColor(int rank) {
+    if (rank <= 3) return const Color(0xff008236);
+    if (rank <= 10) return const Color(0xff1447E6);
+    return Colors.white;
+  }
+
+  Color _getStatusColor(int rank) {
+    if (rank <= 3) return const Color(0xffDCFCE7);
+    if (rank <= 10) return Colors.white;
+    return const Color(0xffDC2626);
+  }
+
+  Color _getProgressColor(int rank) {
+    if (rank <= 3) return const Color(0xff22C55E);
+    if (rank <= 10) return const Color(0xff3B82F6);
+    return const Color(0xffDC2626);
   }
 }
