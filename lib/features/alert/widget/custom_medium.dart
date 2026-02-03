@@ -13,9 +13,8 @@ class CustomMedium extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-
           Container(
             width: 111,
             height: 56,

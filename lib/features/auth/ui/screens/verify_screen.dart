@@ -19,6 +19,12 @@ class _VerifyScreenState extends State<VerifyScreen> {
   late VerifyOtpController controller;
 
   @override
+  void dispose() {
+    Get.delete<VerifyOtpController>();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     controller = Get.put(VerifyOtpController());

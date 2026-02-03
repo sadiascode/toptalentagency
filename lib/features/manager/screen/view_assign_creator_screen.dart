@@ -267,8 +267,11 @@ class _ViewAssignCreatorsScreenState extends State<ViewAssignCreatorsScreen> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundImage: NetworkImage(
-                      "https://i.pravatar.cc/150?img=12",
+                    backgroundColor: Colors.grey.shade300,
+                    child: Icon(
+                      Icons.person,
+                      size: 28,
+                      color: Colors.grey.shade700,
                     ),
                   ),
                   const SizedBox(width: 12),

@@ -169,7 +169,7 @@ class _CreatorDetailsScreenState extends State<CreatorDetailsScreen> {
 
               const SizedBox(height: 14),
               const Text(
-                "December Overview",
+                "Monthly Overview",
                 style: TextStyle(color:Colors.white,fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 10),

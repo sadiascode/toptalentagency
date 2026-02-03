@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../common/custom_color.dart';
+import '../../../features/manager/data/analysis_model.dart';
 
 class AiAnalysisCard extends StatelessWidget {
+  final AnalysisModel? analysisData;
+
   const AiAnalysisCard({
     super.key,
+    this.analysisData,
   });
 
   @override
@@ -37,15 +41,25 @@ class AiAnalysisCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            "Manager Sarah Johnson exceeds targets by 20.0%.\n"
-                "Creators crossed 100% of both coin and live-hour targets.Maintained high performance.",
+          Text(
+            analysisData?.summary ?? "AI Analysis data loading...",
             style: TextStyle(
               color: Colors.white,
               fontSize: 13,
               height: 1.4,
             ),
-          )
+          ),
+          if (analysisData?.reason != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              "Reason: ${analysisData!.reason}",
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                height: 1.3,
+              ),
+            ),
+          ]
         ],
       ),
         ),
