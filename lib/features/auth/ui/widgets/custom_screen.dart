@@ -59,7 +59,9 @@ class _CustomScreenState extends State<CustomScreen> {
                     topRight: Radius.circular(22),
                   ),
                 ),
-                child: widget.child,  // Pass the content of the form or any widget here
+                child: SingleChildScrollView(
+                  child: widget.child,
+                ),
               ),
             ),
           ),
