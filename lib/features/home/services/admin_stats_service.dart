@@ -29,14 +29,14 @@ class AdminStatsService {
 
         // Extract admin stats from response
         final adminStats = AdminStatsModel.fromJson(responseData);
-        
+
         print('✅ Admin Stats Parsed:');
         print('   - Total Creators: ${adminStats.totalCreators}');
         print('   - Total Managers: ${adminStats.totalManagers}');
         print('   - Scrape Today: ${adminStats.scrapeToday}');
         print('   - Total Diamond Achieve: ${adminStats.totalDiamondAchieve}');
         print('   - Total Hour: ${adminStats.totalHour}');
-        
+
         return adminStats;
       } else {
         print('❌ Failed to fetch admin stats. Status: ${response.statusCode}');

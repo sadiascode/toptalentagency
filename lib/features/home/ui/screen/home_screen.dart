@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart';
 import 'package:top_talent_agency/core/roles.dart';
 import 'package:top_talent_agency/core/services/role_storage_service.dart';
 import 'package:top_talent_agency/features/home/controller/admin/manager_controller.dart';
@@ -16,10 +15,6 @@ import 'package:top_talent_agency/features/home/widget/custom_coin.dart';
 import 'package:top_talent_agency/features/home/widget/custom_minicontainer.dart';
 import 'package:top_talent_agency/features/home/widget/custom_pichart.dart';
 import 'package:top_talent_agency/features/home/widget/custom_summary.dart';
-import 'package:top_talent_agency/features/manager/data/manager_model.dart';
-import 'package:top_talent_agency/features/home/data/manager_home_model.dart';
-import 'package:top_talent_agency/app/urls.dart';
-import 'package:top_talent_agency/core/services/token_storage_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final UiUserRole role;
@@ -36,13 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = false;
   String? errorMessage;
   late ManagerController managerController;
-  
+
   // User profile data
   UserProfileModel? userProfile;
   bool isLoadingProfile = true;
-  
-  // Manager data from ManagerHomeModel
-  ManagerHomeModel? currentManager;
 
   @override
   void initState() {
@@ -51,106 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchAiData();
     if (isAdmin) {
       _fetchAdminStats();
-    }
-    if (isManager) {
-      _fetchManagerData();
-    }
-  }
-
-  Future<void> _fetchManagerData() async {
-    print('=== HOME SCREEN: FETCHING MANAGER DATA ===');
-    try {
-      final token = await TokenStorageService.getStoredToken();
-      final dio = Dio();
-      
-      print('🔍 Making API call to: ${Urls.Manager_Dashboard_Score}');
-      final response = await dio.get(
-        Urls.Manager_Dashboard_Score,
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            if (token != null) 'Authorization': 'Bearer $token',
-          },
-        ),
-      );
-
-      print('🔍 Response status: ${response.statusCode}');
-      print('🔍 Response data type: ${response.data.runtimeType}');
-
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
-        print('🔍 Manager API Response: $data');
-        print('🔍 Response keys: ${data is Map ? data.keys.toList() : "Not a Map"}');
-        
-        // Parse managers list and find current manager
-        List<ManagerHomeModel> managerList = [];
-        
-        if (data is List) {
-          print('🔍 Data is List with ${data.length} items');
-          print('🔍 First item keys: ${data.isNotEmpty ? (data[0] is Map ? data[0].keys.toList() : "Not a Map") : "Empty"}');
-          try {
-            managerList = data.map((item) => ManagerHomeModel.fromJson(item)).toList();
-            print('✅ ManagerHomeModel parsing successful');
-          } catch (e) {
-            print('❌ ManagerHomeModel parsing error: $e');
-          }
-        } else if (data['data'] is List) {
-          print('🔍 Data contains List with ${data['data'].length} items');
-          print('🔍 First item keys: ${data['data'].isNotEmpty ? (data['data'][0] is Map ? data['data'][0].keys.toList() : "Not a Map") : "Empty"}');
-          try {
-            managerList = (data['data'] as List).map((item) => ManagerHomeModel.fromJson(item)).toList();
-            print('✅ ManagerHomeModel parsing successful');
-          } catch (e) {
-            print('❌ ManagerHomeModel parsing error: $e');
-          }
-        } else if (data['managers'] is List) {
-          print('🔍 Data contains managers list with ${data['managers'].length} items');
-          print('🔍 First item keys: ${data['managers'].isNotEmpty ? (data['managers'][0] is Map ? data['managers'][0].keys.toList() : "Not a Map") : "Empty"}');
-          try {
-            managerList = (data['managers'] as List).map((item) => ManagerHomeModel.fromJson(item)).toList();
-            print('✅ ManagerHomeModel parsing successful');
-          } catch (e) {
-            print('❌ ManagerHomeModel parsing error: $e');
-          }
-        } else {
-          print('🔍 Unexpected data format: ${data.runtimeType}');
-          print('🔍 Data structure: $data');
-        }
-        
-        print('🔍 Parsed ${managerList.length} managers');
-        for (int i = 0; i < managerList.length; i++) {
-          print('   ${i + 1}. Manager ${i + 1} (rank: ${managerList[i].rank})');
-        }
-        
-        // Find current manager by name
-        final currentManagerName = userProfile?.name;
-        print('🔍 Looking for manager with name: $currentManagerName');
-        
-        if (currentManagerName != null) {
-          // Since ManagerHomeModel doesn't have username, we'll use the first manager for now
-          if (managerList.isNotEmpty) {
-            final manager = managerList[0]; // Use first manager as current
-            if (mounted) {
-              setState(() {
-                currentManager = manager;
-              });
-              print('✅ Manager data loaded: Manager with rank ${manager.rank}');
-              print('🔍 ManagerHomeModel values:');
-              print('   - myCreators: ${manager.myCreators}');
-              print('   - totalDiamond: ${manager.totalDiamond}');
-              print('   - totalHour: ${manager.totalHour}');
-              print('   - atRisk: ${manager.atRisk}');
-            }
-            return;
-          }
-        }  
-        
-        print('❌ Current manager not found in API response');
-      } else {
-        print('❌ No manager data available - Status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('💥 Error fetching manager data: $e');
     }
   }
 
@@ -174,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       print(' Home Screen: Fetching AI data for role: ${widget.role.name}');
       final data = await HomeAiService.fetchAiResponse(widget.role.name);
-      
+
       setState(() {
         isLoading = false;
         aiData = data;
@@ -205,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       print(' Home Screen: Fetching admin stats...');
       final stats = await AdminStatsService.fetchAdminStats();
-      
+
       if (stats != null) {
         setState(() {
           adminStats = stats;
@@ -226,27 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool get isManager => widget.role == UiUserRole.manager;
   bool get isCreator => widget.role == UiUserRole.creator;
 
-  // Helper method to get ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
-  String _getOrdinalSuffix(int number) {
-    if (number >= 11 && number <= 13) {
-      return 'th';
-    }
-    switch (number % 10) {
-      case 1:
-        return 'st';
-      case 2:
-        return 'nd';
-      case 3:
-        return 'rd';
-      default:
-        return 'th';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final ManagerController managerController = Get.put(ManagerController());
-    
+
     print(' HomeScreen Build Debug:');
     print('   - Role: ${widget.role}');
     print('   - Is Admin: $isAdmin');
@@ -280,19 +155,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ClipOval(
                     child: userProfile?.profileImage != null
                         ? Image.network(
-                            userProfile!.profileImage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Icon(Icons.person, size: 24, color: Colors.grey[600]),
-                              );
-                            },
-                          )
+                      userProfile!.profileImage!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Icon(Icons.person, size: 24, color: Colors.grey[600]),
+                        );
+                      },
+                    )
                         : Container(
-                            color: Colors.grey[300],
-                            child: Icon(Icons.person, size: 24, color: Colors.grey[600]),
-                          ),
+                      color: Colors.grey[300],
+                      child: Icon(Icons.person, size: 24, color: Colors.grey[600]),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 15),
@@ -309,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Text(
-                      isLoadingProfile 
+                      isLoadingProfile
                           ? 'Loading...'
                           : 'Welcome back, ${userProfile?.role ?? 'User'}',
                       style: const TextStyle(
@@ -326,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.only(
-          top: 20.0, 
+          top: 20.0,
           left: MediaQuery.of(context).size.width > 600 ? 20.0 : 9.0,
           right: MediaQuery.of(context).size.width > 600 ? 20.0 : 9.0,
         ),
@@ -341,19 +216,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: currentManager != null
-                      ? Text(
-                          "You are in ${currentManager!.rank}${_getOrdinalSuffix(currentManager!.rank)} position in manager ranking",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
-                        )
-                      : Text(
-                          "Loading ranking...",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
-                        ),
+                  child: const Text(
+                    "You are in 5th position in manager ranking",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color:Colors.white,fontWeight: FontWeight.w600, fontSize: 15),
+                  ),
                 ),
-                ],
+              ],
               if (widget.role == UiUserRole.manager || widget.role == UiUserRole.creator) ...[
 
                 const SizedBox(height: 15),
@@ -363,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: isManager ? "My Creators" : "My Rank",
                       iconPath: 'assets/user.svg',
                       iconColor:Color(0xff6A7282),
-                      number: isManager ? (currentManager?.myCreators ?? 0) : 10666,
+                      number: 10666,
                       subtitleColor: Color(0xff00A63E),
                     ),
                     SizedBox(width: 9),
@@ -371,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: "Today's Diamonds",
                       iconPath: 'assets/coin.svg',
                       iconColor:Color(0xffF0B100),
-                      number: isManager ? (currentManager?.totalDiamond ?? 0) : 2035,
+                      number: 2035,
                     ),
                   ],
                 ),
@@ -380,18 +249,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     CustomBoth(
-                      title: "Hours",
+                      title: "Today's Hours",
                       iconPath: 'assets/clock.svg',
                       iconColor:Color(0xff2B7FFF),
-                      number: isManager ? (int.tryParse(currentManager?.totalHour ?? '0') ?? 0) : 24560,
+                      number: 24560,
                       subtitleColor: Color((0xffF54900)),
                     ),
                     SizedBox(width: 9),
                     CustomBoth(
-                      title: "Risk",
+                      title: "Alerts",
                       iconPath: 'assets/Alert.svg',
                       iconColor:Color(0xffCF5050),
-                      number: isManager ? (currentManager?.atRisk ?? 0) : 45623,
+                      number: 45623,
                     ),
                   ],
                 ),

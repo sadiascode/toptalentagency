@@ -87,7 +87,13 @@ class _ManagersScreenState extends State<ManagersScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              CustomSearch(),
+              CustomSearch(
+                hintText: "Search managers...",
+                onSearch: (query) {
+                  print('Searching for manager: $query');
+                  // Add search logic here if needed
+                },
+              ),
 
               SizedBox(height: 15),
               Row(

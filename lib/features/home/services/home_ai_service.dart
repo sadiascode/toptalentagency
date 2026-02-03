@@ -15,7 +15,7 @@ class HomeAiService {
     try {
       final url = Urls.AI_Response_admin_manager_creator;
       final token = await _getAuthToken();
-      
+
       print('🤖 Home AI Service Debug:');
       print('   - URL: $url');
       print('   - Role: $role');
@@ -49,7 +49,7 @@ class HomeAiService {
         print('📊 Data Type: ${responseData.runtimeType}');
 
         final aiModel = AdminHomeAiModel.fromJson(responseData);
-        
+
         print('✅ Successfully parsed AdminHomeAiModel');
         print('   - Welcome Msg Type: ${aiModel.welcomeMsg.msgType}');
         print('   - Welcome Msg: ${aiModel.welcomeMsg.msg}');
@@ -61,7 +61,7 @@ class HomeAiService {
         print('   - Total Managers: ${aiModel.adminStats.totalManagers}');
         print('   - Total Creators: ${aiModel.adminStats.totalCreators}');
         print('   - Total Scrap: ${aiModel.adminStats.totalScrap}');
-        
+
         return aiModel;
       } else {
         print('❌ Failed to load AI data. Status code: ${response.statusCode}');
@@ -77,7 +77,7 @@ class HomeAiService {
   // Create fallback AI model for when API fails
   static AdminHomeAiModel createFallbackModel(String role) {
     print('🔄 Creating fallback AI model for role: $role');
-    
+
     return AdminHomeAiModel(
       welcomeMsg: WelcomeMessage(
         msgType: 'fallback',
