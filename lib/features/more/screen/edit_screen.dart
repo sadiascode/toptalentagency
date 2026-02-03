@@ -5,23 +5,61 @@ import 'package:top_talent_agency/core/roles.dart';
 import 'package:top_talent_agency/features/more/widget/custom_align.dart';
 import 'package:top_talent_agency/features/more/services/password_change_service.dart';
 import 'package:top_talent_agency/features/more/services/profile_update_service.dart';
+import 'package:top_talent_agency/features/more/services/user_profile_service.dart';
+import 'package:top_talent_agency/features/more/data/user_profile_model.dart';
 
 import '../../auth/ui/widgets/custom_textfield.dart';
 
-class EditScreen extends StatelessWidget {
+class EditScreen extends StatefulWidget {
   final UiUserRole role;
 
    EditScreen({super.key, required this.role});
 
+  @override
+  State<EditScreen> createState() => _EditScreenState();
+}
+
+class _EditScreenState extends State<EditScreen> {
   final nameController = TextEditingController();
-  final emailController = TextEditingController(text: "admin@company.com");
+  final emailController = TextEditingController();
   final oldPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  
+  UserProfileModel? userProfile;
+  bool isLoadingProfile = true;
 
-  bool get isAdmin => role == UiUserRole.admin;
-  bool get isManager => role == UiUserRole.manager;
-  bool get isCreator => role == UiUserRole.creator;
+  bool get isAdmin => widget.role == UiUserRole.admin;
+  bool get isManager => widget.role == UiUserRole.manager;
+  bool get isCreator => widget.role == UiUserRole.creator;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final profile = await UserProfileService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          userProfile = profile;
+          emailController.text = profile?.email ?? '';
+          nameController.text = profile?.name ?? '';
+          isLoadingProfile = false;
+        });
+        print('✅ User profile loaded: ${profile?.email}');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoadingProfile = false;
+        });
+      }
+      print('❌ Error loading user profile: $e');
+    }
+  }
 
   // Password change method
   Future<void> changePassword(BuildContext context) async {
@@ -64,7 +102,7 @@ class EditScreen extends StatelessWidget {
       oldPassword: oldPasswordController.text,
       newPassword: newPasswordController.text,
       confirmPassword: confirmPasswordController.text,
-      role: role,
+      role: widget.role,
     );
 
     if (success) {
@@ -177,9 +215,9 @@ class EditScreen extends StatelessWidget {
           icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
         ),
         title:   Text(
-          role == UiUserRole.admin
+          widget.role == UiUserRole.admin
               ? 'Edit Admin'
-              : role == UiUserRole.manager
+              : widget.role == UiUserRole.manager
               ? 'Edit Manager'
               : 'Edit Creator',
           style: const TextStyle(
@@ -240,10 +278,29 @@ class EditScreen extends StatelessWidget {
             const SizedBox(height: 20),
             CustomAlign(title: "Email ID"),
             const SizedBox(height: 5),
-            CustomTextfield(
-              controller: emailController,
-              textColor: Colors.white,
-            ),
+            isLoadingProfile 
+                ? Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[800],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    ),
+                  )
+                : CustomTextfield(
+                    controller: emailController,
+                    textColor: Colors.white,
+                    readOnly: true, // Email cannot be edited
+                  ),
 
             const SizedBox(height: 20),
 

@@ -6,7 +6,7 @@ import '../../../common/custom_color.dart';
 class CustomCoin extends StatelessWidget {
   final String? totalHour;
   final String? totalDiamondAchieve;
-  
+
   const CustomCoin({
     super.key,
     this.totalHour,
@@ -32,104 +32,104 @@ class CustomCoin extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
 
-    child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title
-          Text(
-            'Diamonds & Hours Overview',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            Text(
+              'Diamonds & Hours Overview',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Total Coins Section
-          Row(
-            children: [
-              SvgPicture.asset(
-                'assets/coin.svg',
-                width: 22,
-                height: 22,
-                color: Color(0xffFDC700),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Total Diamonds',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+            // Total Coins Section
+            Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/coin.svg',
+                  width: 22,
+                  height: 22,
+                  color: Color(0xffFDC700),
                 ),
-              ),
-              Spacer(),
-              Text(
-                totalDiamondAchieve ?? '13.78M',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                const SizedBox(width: 8),
+                Text(
+                  'Total Diamonds',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Coins Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: 8,
-              minHeight: 8,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                Spacer(),
+                Text(
+                  totalDiamondAchieve ?? '13.78M',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
-          ),
+            const SizedBox(height: 10),
 
-          const SizedBox(height: 35),
-
-          // Total Hours Section
-          Row(
-            children: [
-              Icon(Icons.access_time, color: Colors.blue, size: 22),
-              const SizedBox(width: 8),
-              Text(
-                'Total Hours',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+            // Coins Progress Bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: 8,
+                minHeight: 8,
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
               ),
-              Spacer(),
-              Text(
-                totalHour ?? '139.7K',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Hours Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: 8,
-              minHeight: 8,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
-          ),
-          const SizedBox(height: 8),
 
-        ],
-      ),
+            const SizedBox(height: 35),
+
+            // Total Hours Section
+            Row(
+              children: [
+                Icon(Icons.access_time, color: Colors.blue, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  'Total Hours',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  totalHour ?? '139.7K',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Hours Progress Bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: 8,
+                minHeight: 8,
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+          ],
+        ),
       ),
     );
   }

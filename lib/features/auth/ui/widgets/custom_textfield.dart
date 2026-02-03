@@ -5,6 +5,7 @@ class CustomTextfield extends StatefulWidget {
   final bool isPassword;
   final TextEditingController? controller;
   final Color textColor;
+  final bool readOnly;
 
   const CustomTextfield({
     super.key,
@@ -12,6 +13,7 @@ class CustomTextfield extends StatefulWidget {
     this.isPassword = false,
     this.controller,
     this.textColor = Colors.black,
+    this.readOnly = false,
   });
 
   @override
@@ -26,6 +28,7 @@ class _CustomTextfieldState extends State<CustomTextfield> {
     return TextField(
       controller: widget.controller,
       obscureText: widget.isPassword ? _obscureText : false,
+      readOnly: widget.readOnly,
       style: TextStyle(
         color: widget.textColor,
         fontSize: 15,

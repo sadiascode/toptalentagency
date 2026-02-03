@@ -9,9 +9,9 @@ class CustomSummary extends StatelessWidget {
   final String? errorMessage;
 
   const CustomSummary({
-    super.key, 
-    this.aiData, 
-    this.isLoading = false, 
+    super.key,
+    this.aiData,
+    this.isLoading = false,
     this.errorMessage
   });
 
@@ -34,85 +34,85 @@ class CustomSummary extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(12),
       ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Icon(
-                    Icons.auto_awesome,
-                    color: Color(0xffAD46FF),
-                    size: screenWidth > 600 ? 25 : 22,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      'AI Daily Summary for Your Team',
-                      style: TextStyle(
-                        fontSize: screenWidth > 600 ? 16 : 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  color: Color(0xffAD46FF),
+                  size: screenWidth > 600 ? 25 : 22,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    'AI Daily Summary for Your Team',
+                    style: TextStyle(
+                      fontSize: screenWidth > 600 ? 16 : 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 15),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
 
-              // Scrollable content area
-              Expanded(
-                child: isLoading
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(color: Colors.white),
-                            SizedBox(height: 10),
-                            Text(
-                              'Loading AI summary...',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                      )
-                    : errorMessage != null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.error_outline, color: Colors.red, size: 40),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Error loading AI summary',
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                              ],
-                            ),
-                          )
-                        : aiData != null
-                            ? SingleChildScrollView(
-                                child: _buildAiSummary(aiData!),
-                              )
-                            : SingleChildScrollView(
-                                child: _buildFallbackSummary(),
-                              ),
+            // Scrollable content area
+            Expanded(
+              child: isLoading
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 10),
+                    Text(
+                      'Loading AI summary...',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
+              )
+                  : errorMessage != null
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 40),
+                    SizedBox(height: 10),
+                    Text(
+                      'Error loading AI summary',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
+              )
+                  : aiData != null
+                  ? SingleChildScrollView(
+                child: _buildAiSummary(aiData!),
+              )
+                  : SingleChildScrollView(
+                child: _buildFallbackSummary(),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-  );
-}
+      ),
+    );
+  }
 
   Widget _buildAiSummary(AdminHomeAiModel aiData) {
     final summary = aiData.dailySummary;
-    
+
     return Column(
       children: [
         // High Priority Section with AI data
@@ -120,11 +120,11 @@ class CustomSummary extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: summary.priority == 'high' 
+            color: summary.priority == 'high'
                 ? const Color(0xff1D0014)
                 : summary.priority == 'medium'
-                    ? const Color(0xff1A1400)
-                    : const Color(0xff00140D),
+                ? const Color(0xff1A1400)
+                : const Color(0xff00140D),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -133,11 +133,11 @@ class CustomSummary extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: summary.priority == 'high' 
+                  color: summary.priority == 'high'
                       ? Color(0xff620041)
                       : summary.priority == 'medium'
-                          ? Color(0xff614E00)
-                          : Color(0xff00551D),
+                      ? Color(0xff614E00)
+                      : Color(0xff00551D),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -170,11 +170,11 @@ class CustomSummary extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               if (summary.suggestedAction.isNotEmpty)
-                ...summary.suggestedAction.take(2).map((action) => 
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: _buildBulletPoint(action),
-                  ),
+                ...summary.suggestedAction.take(2).map((action) =>
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildBulletPoint(action),
+                    ),
                 ),
             ],
           ),

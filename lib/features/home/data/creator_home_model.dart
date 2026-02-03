@@ -9,7 +9,7 @@ class CreatorHomeModel {
     required this.totalHour,
   });
 
-  // Factory constructor to parse from JSON
+  /// Factory constructor to parse from JSON
   factory CreatorHomeModel.fromJson(Map<String, dynamic> json) {
     return CreatorHomeModel(
       rank: json['rank'] ?? 0,
@@ -18,7 +18,7 @@ class CreatorHomeModel {
     );
   }
 
-  //Convert object back to JSON
+  /// Convert object back to JSON
   Map<String, dynamic> toJson() {
     return {
       'rank': rank,
