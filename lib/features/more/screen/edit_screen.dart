@@ -203,12 +203,7 @@ class EditScreen extends StatelessWidget {
                     decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: ClipOval(
                       child: Center(
-                        child: Image.network(
-                          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200',
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
+                        child: Icon(Icons.person,size: 150,color: Colors.grey,)
                       ),
                     ),
                   ),

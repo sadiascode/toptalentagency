@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
         
         print('🔍 Parsed ${managerList.length} managers');
         for (int i = 0; i < managerList.length; i++) {
-          print('   ${i + 1}. ${managerList[i].username} (rank: ${managerList[i].rank})');
+          print('   ${i + 1}. Manager ${i + 1} (rank: ${managerList[i].rank})');
         }
         
         // Find current manager by name
@@ -127,24 +127,23 @@ class _HomeScreenState extends State<HomeScreen> {
         print('🔍 Looking for manager with name: $currentManagerName');
         
         if (currentManagerName != null) {
-          for (var manager in managerList) {
-            print('🔍 Comparing: "${manager.username}" with "$currentManagerName"');
-            if (manager.username == currentManagerName) {
-              if (mounted) {
-                setState(() {
-                  currentManager = manager;
-                });
-                print('✅ Manager data loaded: ${manager.username} with rank ${manager.rank}');
-                print('🔍 ManagerHomeModel values:');
-                print('   - myCreators: ${manager.myCreators}');
-                print('   - diamond: ${manager.diamond}');
-                print('   - hour: ${manager.hour}');
-                print('   - atRisk: ${manager.atRisk}');
-              }
-              return;
+          // Since ManagerHomeModel doesn't have username, we'll use the first manager for now
+          if (managerList.isNotEmpty) {
+            final manager = managerList[0]; // Use first manager as current
+            if (mounted) {
+              setState(() {
+                currentManager = manager;
+              });
+              print('✅ Manager data loaded: Manager with rank ${manager.rank}');
+              print('🔍 ManagerHomeModel values:');
+              print('   - myCreators: ${manager.myCreators}');
+              print('   - totalDiamond: ${manager.totalDiamond}');
+              print('   - totalHour: ${manager.totalHour}');
+              print('   - atRisk: ${manager.atRisk}');
             }
+            return;
           }
-        }
+        }  
         
         print('❌ Current manager not found in API response');
       } else {
@@ -372,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: "Today's Diamonds",
                       iconPath: 'assets/coin.svg',
                       iconColor:Color(0xffF0B100),
-                      number: isManager ? (currentManager?.diamond ?? 0) : 2035,
+                      number: isManager ? (currentManager?.totalDiamond ?? 0) : 2035,
                     ),
                   ],
                 ),
@@ -384,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: "Hours",
                       iconPath: 'assets/clock.svg',
                       iconColor:Color(0xff2B7FFF),
-                      number: isManager ? (currentManager?.hour?.toInt() ?? 0) : 24560,
+                      number: isManager ? (int.tryParse(currentManager?.totalHour ?? '0') ?? 0) : 24560,
                       subtitleColor: Color((0xffF54900)),
                     ),
                     SizedBox(width: 9),
@@ -466,9 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   diamondValue: adminStats?.formattedDiamondAchieve ?? '0',
                 )
               else
-                CustomPichart(
-                  diamondValue: isManager ? (currentManager?.diamond?.toString() ?? '0') : '0',
-                ),
+                CustomPichart(),
 
               SizedBox(height: 25),
               if (isAdmin)
