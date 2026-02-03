@@ -41,6 +41,12 @@ class ForgotPasswordController extends GetxController {
     return true;
   }
 
+  var isVerification = false;
+
+  void setIsVerification(bool value) {
+    isVerification = value;
+  }
+
   Future<void> sendResetCode(BuildContext context) async {
     final email = emailController.text.trim();
 
@@ -51,55 +57,59 @@ class ForgotPasswordController extends GetxController {
     isLoading.value = true;
 
     try {
+      final url = isVerification ? Urls.Email_otp : Urls.forgot_password;
+      
       final response = await networkClient.postRequest(
-        Urls.forgot_password,
+        url,
         body: {"email": email},
       );
 
       isLoading.value = false;
 
       if (!response.isSuccess) {
-        Get.snackbar(
-          "Error",
-          response.errorMessage ?? "Failed to send reset code",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      final data = response.responseData;
-      if (data == null) {
-        Get.snackbar(
-          "Error",
-          "Invalid server response",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.errorMessage ?? "Failed to send code"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
       // Success - navigate to OTP verification screen
-      Get.snackbar(
-        "Success",
-        "Reset code sent to your email",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Code sent to your email"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
 
       // Navigate to VerifyScreen with email
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => VerifyScreen(email: email)),
-      );
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VerifyScreen(
+              email: email, 
+              isVerification: isVerification,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        "Error",
-        "Something went wrong. Please try again.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Something went wrong. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

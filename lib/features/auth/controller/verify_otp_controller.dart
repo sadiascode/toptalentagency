@@ -32,43 +32,59 @@ class VerifyOtpController extends GetxController {
     );
   }
 
-  bool validateOtp(String otp) {
+  bool validateOtp(String otp, BuildContext context) {
     if (otp.isEmpty) {
-      Get.snackbar("Error", "Please enter the OTP code");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter the OTP code")),
+      );
       return false;
     }
 
     if (otp.length != 6) {
-      Get.snackbar("Error", "Please enter a valid 6-digit OTP");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid 6-digit OTP")),
+      );
       return false;
     }
 
     // Check if OTP contains only digits
     if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
-      Get.snackbar("Error", "OTP must contain only digits");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("OTP must contain only digits")),
+      );
       return false;
     }
 
     return true;
   }
 
+  var isVerification = false;
+
+  void setIsVerification(bool value) {
+    isVerification = value;
+  }
+
   Future<void> verifyOtp(BuildContext context) async {
     final otp = otpController.text.trim();
 
-    if (!validateOtp(otp)) {
+    if (!validateOtp(otp, context)) {
       return;
     }
 
     if (email.isEmpty) {
-      Get.snackbar("Error", "Email is required for OTP verification");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email is required for OTP verification")),
+      );
       return;
     }
 
     isLoading.value = true;
 
     try {
+      final url = isVerification ? Urls.Verify_Email : Urls.verify_otp;
+      
       final response = await networkClient.postRequest(
-        Urls.verify_otp,
+        url,
         body: {
           "email": email,
           "otp": otp,
@@ -87,61 +103,79 @@ class VerifyOtpController extends GetxController {
           errorMessage = "Invalid OTP. Please check and try again.";
         }
         
-        Get.snackbar(
-          "Error",
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
       final data = response.responseData;
-      if (data == null) {
-        Get.snackbar(
-          "Error",
-          "Invalid server response",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+      
+      // For verify email, data might be just a message or contain details, 
+      // but we don't strictly require response data validation like password reset flow
+      // unless it's the password reset flow which needs a token
+      
+      if (!isVerification && data == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Invalid server response"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
       // Success - navigate to Reset Password screen
-      Get.snackbar(
-        "Success",
-        "OTP verified successfully",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-
-      // Extract reset token if available
-      String? resetToken;
-      if (data['reset_token'] != null) {
-        resetToken = data['reset_token'].toString();
-      } else if (data['token'] != null) {
-        resetToken = data['token'].toString();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isVerification ? "Email verified successfully" : "OTP verified successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
 
-      // Navigate to ResetScreen with email and token
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ResetScreen(
-            email: email,
-            resetToken: resetToken,
+      // Extract reset token if available (only for password reset flow)
+      String? resetToken;
+      if (!isVerification && data != null) {
+        if (data['reset_token'] != null) {
+          resetToken = data['reset_token'].toString();
+        } else if (data['token'] != null) {
+          resetToken = data['token'].toString();
+        }
+      }
+
+      // Navigate to ResetScreen
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ResetScreen(
+              email: email,
+              resetToken: resetToken,
+              isSetPassword: isVerification,
+            ),
           ),
-        ),
-      );
+        );
+      }
 
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        "Error",
-        "Something went wrong. Please try again.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Something went wrong. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
