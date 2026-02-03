@@ -29,11 +29,21 @@ class _ManagerRankState extends State<ManagerRank> {
       if (dashboard != null && dashboard.managers.isNotEmpty) {
         // Sort managers by diamonds/score in descending order
         final sortedManagers = List<ManagerInfo>.from(dashboard.managers);
+        print('🔍 Before sorting:');
+        for (int i = 0; i < sortedManagers.length; i++) {
+          print('   ${i + 1}. ${sortedManagers[i].name}: ${sortedManagers[i].score ?? 0} diamonds');
+        }
+        
         sortedManagers.sort((a, b) {
           final aDiamonds = a.score ?? 0;
           final bDiamonds = b.score ?? 0;
           return bDiamonds.compareTo(aDiamonds);
         });
+        
+        print('🔍 After sorting:');
+        for (int i = 0; i < sortedManagers.length; i++) {
+          print('   ${i + 1}. ${sortedManagers[i].name}: ${sortedManagers[i].score ?? 0} diamonds');
+        }
         
         if (mounted) {
           setState(() {
@@ -125,12 +135,10 @@ class _ManagerRankState extends State<ManagerRank> {
                                                 );
                                               },
                                             )
-                                          : Image.network(
-                                              'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200',
-                                              width: imageSize,
-                                              height: imageSize,
-                                              fit: BoxFit.cover,
-                                            ),
+                                          :  Icon(
+                                        Icons.person,
+                                        size: 66,
+                                        color: Colors.grey[600],)
                                     ),
                                     Positioned(
                                       top: -rankFont * 0.6,
@@ -148,7 +156,7 @@ class _ManagerRankState extends State<ManagerRank> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  allManagers.isNotEmpty ? allManagers[0].name : 'Sophie Kihm',
+                                  allManagers.isNotEmpty ? (allManagers[0].name ?? 'Unknown Manager') : 'Sophie Kihm',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -184,12 +192,10 @@ class _ManagerRankState extends State<ManagerRank> {
                                                 );
                                               },
                                             )
-                                          : Image.network(
-                                              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',
-                                              width: imageSize,
-                                              height: imageSize,
-                                              fit: BoxFit.cover,
-                                            ),
+                                          : Icon(
+                                        Icons.person,
+                                        size: 66,
+                                        color: Colors.grey[600],)
                                     ),
                                     Positioned(
                                       top: -rankFont * 0.6,
@@ -207,7 +213,7 @@ class _ManagerRankState extends State<ManagerRank> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  allManagers.length > 1 ? allManagers[1].name : 'Lisa Anderson',
+                                  allManagers.length > 1 ? (allManagers[1].name ?? 'Unknown Manager') : 'Lisa Anderson',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -243,12 +249,10 @@ class _ManagerRankState extends State<ManagerRank> {
                                                 );
                                               },
                                             )
-                                          : Image.network(
-                                              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
-                                              width: imageSize,
-                                              height: imageSize,
-                                              fit: BoxFit.cover,
-                                            ),
+                                          : Icon(
+                                          Icons.person,
+                                        size: 66,
+                                        color: Colors.grey[600],)
                                     ),
                                     Positioned(
                                       top: -rankFont * 0.6,
@@ -266,7 +270,7 @@ class _ManagerRankState extends State<ManagerRank> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  allManagers.length > 2 ? allManagers[2].name : 'Van Dijk',
+                                  allManagers.length > 2 ? (allManagers[2].name ?? 'Unknown Manager') : 'Van Dijk',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -313,30 +317,13 @@ class _ManagerRankState extends State<ManagerRank> {
                                 final index = entry.key;
                                 final manager = entry.value;
                                 final actualRank = index + 4; // Start from 4th position
+                                print('🏆 Rank $actualRank: ${manager.name} with ${manager.score ?? 0} diamonds');
                                 return Column(
                                   children: [
                                     CustomRankcoin(
                                       rank: '$actualRank', 
-                                      name: manager.name,
-                                      hours: '${manager.myCreatorsValue} creators',
-                                      Diamond: '${manager.score ?? 0}'
-                                    ),
-                                    const SizedBox(height: 20),
-                                  ],
-                                );
-                              }).toList()
-                            else if (allManagers.isNotEmpty)
-                              // If less than 4 managers, show remaining from start
-                              ...allManagers.toList().asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final manager = entry.value;
-                                final actualRank = index + 1;
-                                return Column(
-                                  children: [
-                                    CustomRankcoin(
-                                      rank: '$actualRank', 
-                                      name: manager.name,
-                                      hours: '${manager.myCreatorsValue} creators',
+                                      name: manager.name ?? 'Unknown Manager',
+                                      hours: '${manager.myCreatorsValue ?? 0} creators',
                                       Diamond: '${manager.score ?? 0}'
                                     ),
                                     const SizedBox(height: 20),
@@ -344,25 +331,34 @@ class _ManagerRankState extends State<ManagerRank> {
                                 );
                               }).toList()
                             else
-                              // Fallback static data if no API data
-                              Column(
-                                children: [
-                                  CustomRankcoin(
-                                      rank: '4', name: "Sarah Johnson",
-                                      hours: '5.6h', Diamond: '1,743'
-                                  ),
-                                  const SizedBox(height: 20),
-                                  CustomRankcoin(
-                                      rank: '5', name: "Sarah Johnson",
-                                      hours: '5.6h', Diamond: '1,743'
-                                  ),
-                                  const SizedBox(height: 20),
-                                  CustomRankcoin(
-                                      rank: '6', name: "Sarah Johnson",
-                                      hours: '5.6h', Diamond: '1,743'
-                                  ),
-                                ],
-                              ),
+                              // Show API data from start if less than 4 managers
+                              if (allManagers.isNotEmpty)
+                                ...allManagers.toList().asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final manager = entry.value;
+                                  final actualRank = index + 1;
+                                  print('🏆 Rank $actualRank: ${manager.name} with ${manager.score ?? 0} diamonds');
+                                  return Column(
+                                    children: [
+                                      CustomRankcoin(
+                                        rank: '$actualRank', 
+                                        name: manager.name ?? 'Unknown Manager',
+                                        hours: '${manager.myCreatorsValue ?? 0} creators',
+                                        Diamond: '${manager.score ?? 0}'
+                                      ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  );
+                                }).toList()
+                              else
+                                Column(
+                                  children: [
+                                    Text(
+                                      'No manager data available',
+                                      style: TextStyle(color: Colors.white, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
                           ],
                         ),
                       ),

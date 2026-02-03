@@ -26,6 +26,10 @@ class Urls {
   //Admin all manager
   static const String Manager_Dashboard_Score = "$baseUrl/api/dashboard/manager/";
 
+  //Admin all creator
+  static const String Creator_Dashboard_Score = "$baseUrl/api/dashboard/creator/";
+
+
   // single manager
   static String singleManagerDashboardScore(int managerId) {
     return "$baseUrl/api/dashboard/manager/?manager_id=$managerId";
@@ -55,5 +59,7 @@ class Urls {
   static const String AI_Response_admin_manager_creator = "$baseUrl/api/ai-response/";
 
   // AI alerts
-  static const String AI_Response_alertproblem = "$baseUrl/api/ai-response/alerts";
+  static const String AI_Response_alertproblem =
+      "$baseUrl/api/ai-response/alerts";
+  static const String AI_Response_alerts = "$baseUrl/api/ai-response/alerts";
 }

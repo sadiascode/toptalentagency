@@ -4,16 +4,17 @@ class TargetRequestModel {
   final int diamonds;
   final double hours;
 
-  TargetRequestModel({
-    required this.diamonds,
-    required this.hours,
-  });
+  TargetRequestModel({required this.diamonds, required this.hours});
 
   factory TargetRequestModel.fromJson(Map<String, dynamic> json) {
     print('🔍 TargetRequestModel.fromJson called with:');
     print('   - Full JSON keys: ${json.keys.toList()}');
-    print('   - total_diamond key exists: ${json.containsKey('total_diamond')}');
+    print('   - All JSON data: $json');
+    print(
+      '   - total_diamond key exists: ${json.containsKey('total_diamond')}',
+    );
     print('   - diamonds key exists: ${json.containsKey('diamonds')}');
+    print('   - diamondtotal key exists: ${json.containsKey('diamondtotal')}');
 
     // Try multiple possible diamond field names
     final diamondsRaw =
@@ -23,18 +24,21 @@ class TargetRequestModel {
             json['total_diamonds'] ??
             json['diamond_count'] ??
             json['diamonds_count'] ??
+            json['diamondtotal'] ??
+            json['diamond_total'] ??
+            json['totalDiamond'] ??
+            json['sum_diamonds'] ??
+            json['diamond_sum'] ??
+            json['all_diamonds'] ??
+            json['diamonds_total'] ??
             0;
 
-    final hoursRaw =
-        json['total_hour'] ??
-            json['hours'] ??
-            0;
+    final hoursRaw = json['total_hour'] ?? json['hours'] ?? 0;
 
     print('   - diamondsRaw: $diamondsRaw (type: ${diamondsRaw.runtimeType})');
     print('   - hoursRaw: $hoursRaw (type: ${hoursRaw.runtimeType})');
 
-    final diamondsDouble =
-        double.tryParse(diamondsRaw.toString()) ?? 0.0;
+    final diamondsDouble = double.tryParse(diamondsRaw.toString()) ?? 0.0;
 
     final diamondsInt = diamondsDouble.toInt();
 
@@ -48,15 +52,11 @@ class TargetRequestModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'diamonds': diamonds,
-      'hours': hours,
-    };
+    return {'diamonds': diamonds, 'hours': hours};
   }
 
   @override
-  String toString() =>
-      'MonthStats(diamonds: $diamonds, hours: $hours)';
+  String toString() => 'MonthStats(diamonds: $diamonds, hours: $hours)';
 }
 
 // ------------------- Last 3 Months -------------------
@@ -79,9 +79,7 @@ class Last3Months {
   }
 
   Map<String, dynamic> toJson() {
-    return months.map(
-          (month, stats) => MapEntry(month, stats.toJson()),
-    );
+    return months.map((month, stats) => MapEntry(month, stats.toJson()));
   }
 
   @override

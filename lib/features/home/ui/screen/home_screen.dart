@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:dio/dio.dart';
 import 'package:top_talent_agency/core/roles.dart';
 import 'package:top_talent_agency/core/services/role_storage_service.dart';
 import 'package:top_talent_agency/features/home/controller/admin/manager_controller.dart';
@@ -15,6 +16,9 @@ import 'package:top_talent_agency/features/home/widget/custom_coin.dart';
 import 'package:top_talent_agency/features/home/widget/custom_minicontainer.dart';
 import 'package:top_talent_agency/features/home/widget/custom_pichart.dart';
 import 'package:top_talent_agency/features/home/widget/custom_summary.dart';
+import 'package:top_talent_agency/features/manager/data/manager_model.dart';
+import 'package:top_talent_agency/app/urls.dart';
+import 'package:top_talent_agency/core/services/token_storage_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final UiUserRole role;
@@ -35,6 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // User profile data
   UserProfileModel? userProfile;
   bool isLoadingProfile = true;
+  
+  // Manager data from ManagerModel
+  ManagerModel? currentManager;
 
   @override
   void initState() {
@@ -43,6 +50,79 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchAiData();
     if (isAdmin) {
       _fetchAdminStats();
+    }
+    if (isManager) {
+      _fetchManagerData();
+    }
+  }
+
+  Future<void> _fetchManagerData() async {
+    print('=== HOME SCREEN: FETCHING MANAGER DATA ===');
+    try {
+      final token = await TokenStorageService.getStoredToken();
+      final dio = Dio();
+      
+      print('🔍 Making API call to: ${Urls.Manager_Dashboard_Score}');
+      final response = await dio.get(
+        Urls.Manager_Dashboard_Score,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      print('🔍 Response status: ${response.statusCode}');
+      print('🔍 Response data type: ${response.data.runtimeType}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        print('🔍 Manager API Response: $data');
+        
+        // Parse managers list and find current manager
+        List<ManagerModel> managerList = [];
+        
+        if (data is List) {
+          print('🔍 Data is List with ${data.length} items');
+          managerList = data.map((item) => ManagerModel.fromJson(item)).toList();
+        } else if (data['data'] is List) {
+          print('🔍 Data contains List with ${data['data'].length} items');
+          managerList = (data['data'] as List).map((item) => ManagerModel.fromJson(item)).toList();
+        } else {
+          print('🔍 Unexpected data format: ${data.runtimeType}');
+        }
+        
+        print('🔍 Parsed ${managerList.length} managers');
+        for (int i = 0; i < managerList.length; i++) {
+          print('   ${i + 1}. ${managerList[i].username} (rank: ${managerList[i].rank})');
+        }
+        
+        // Find current manager by name
+        final currentManagerName = userProfile?.name;
+        print('🔍 Looking for manager with name: $currentManagerName');
+        
+        if (currentManagerName != null) {
+          for (var manager in managerList) {
+            print('🔍 Comparing: "${manager.username}" with "$currentManagerName"');
+            if (manager.username == currentManagerName) {
+              if (mounted) {
+                setState(() {
+                  currentManager = manager;
+                });
+                print('✅ Manager data loaded: ${manager.username} with rank ${manager.rank}');
+              }
+              return;
+            }
+          }
+        }
+        
+        print('❌ Current manager not found in API response');
+      } else {
+        print('❌ No manager data available - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('💥 Error fetching manager data: $e');
     }
   }
 
@@ -117,6 +197,23 @@ class _HomeScreenState extends State<HomeScreen> {
   bool get isAdmin => widget.role == UiUserRole.admin;
   bool get isManager => widget.role == UiUserRole.manager;
   bool get isCreator => widget.role == UiUserRole.creator;
+
+  // Helper method to get ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+  String _getOrdinalSuffix(int number) {
+    if (number >= 11 && number <= 13) {
+      return 'th';
+    }
+    switch (number % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,11 +313,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: const Text(
-                    "You are in 5th position in manager ranking",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color:Colors.white,fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
+                  child: currentManager != null
+                      ? Text(
+                          "You are in ${currentManager!.rank}${_getOrdinalSuffix(currentManager!.rank)} position in manager ranking",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+                        )
+                      : Text(
+                          "Loading your ranking...",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+                        ),
                 ),
                 ],
               if (widget.role == UiUserRole.manager || widget.role == UiUserRole.creator) ...[

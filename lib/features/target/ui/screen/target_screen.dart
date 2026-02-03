@@ -62,15 +62,43 @@ class _TargetsScreenState extends State<TargetsScreen> {
             ),
           );
 
-          if (response.statusCode == 200 && response.data != null && response.data is Map) {
-            final data = (response.data as Map).cast<String, dynamic>();
-            fetched.add(_MonthTarget(month: month, data: data));
+          if (response.statusCode == 200 && response.data != null) {
+            print('🔍 Raw API Response for month $month:');
+            print('   - Status: ${response.statusCode}');
+            print('   - Data type: ${response.data.runtimeType}');
+            print('   - Full response: ${response.data}');
+
+            // Handle different response formats
+            Map<String, dynamic> data;
+
+            if (response.data is Map) {
+              data = (response.data as Map).cast<String, dynamic>();
+            } else if (response.data is List && response.data.isNotEmpty) {
+              // If it's a list, take the first item or aggregate
+              final listData = response.data as List;
+              data = listData.first is Map
+                  ? Map<String, dynamic>.from(listData.first)
+                  : {};
+              print('   - Response was list, using first item');
+            } else {
+              print('   - Unexpected response format, using empty map');
+              data = {};
+            }
+
+            print('   - Processed data keys: ${data.keys.toList()}');
+
+            final targetModel = TargetRequestModel.fromJson(data);
+            fetched.add(
+              _MonthTarget(month: month, data: data, targetModel: targetModel),
+            );
           } else {
-            errorMessage ??= 'Request failed (${response.statusCode}) for month $month';
+            errorMessage ??=
+            'Request failed (${response.statusCode}) for month $month';
           }
         } on DioException catch (e) {
           final status = e.response?.statusCode;
-          errorMessage ??= 'Request failed (${status ?? 'no status'}) for month $month';
+          errorMessage ??=
+          'Request failed (${status ?? 'no status'}) for month $month';
         }
       }
 
@@ -113,86 +141,90 @@ class _TargetsScreenState extends State<TargetsScreen> {
         ),
       ),
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            )
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, right: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (monthTargets.isEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          color: const Color(0xff1D0014),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.data_usage,
-                              size: 48,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "No target data available",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              errorMessage ?? "Please check your connection and try again",
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _fetchTargetData,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff620041),
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text("Retry"),
-                            ),
-                          ],
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20, right: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (monthTargets.isEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: const Color(0xff1D0014),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.data_usage,
+                        size: 48,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "No target data available",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ] else ...[
-                      ...monthTargets.map((item) {
-                        print('🔍 MonthTarget for ${item.month}:');
-                        print('   - All keys: ${item.data.keys.toList()}');
-                        print('   - diamondtotal: ${item.data['diamondtotal']}');
-                        print('   - diamonds: ${item.data['diamonds']}');
-                        print('   - total_hour: ${item.data['total_hour']}');
-                        
-                        final diamonds = int.tryParse(item.data['diamondtotal']?.toString() ?? '0') ?? 0;
-                        final hours = double.tryParse(item.data['total_hour']?.toString() ?? '0') ?? 0.0;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: CustomTargets(
-                            title: item.data['month']?.toString() ?? _formatMonthLabel(item.month),
-                            progressBarColor: Colors.blue,
-                            containerColor: const Color(0xff1D0014),
-                            diamonds: diamonds,
-                            Hours: hours,
-                          ),
-                        );
-                      }).toList(),
+                      const SizedBox(height: 8),
+                      Text(
+                        errorMessage ??
+                            "Please check your connection and try again",
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchTargetData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff620041),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Retry"),
+                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              ] else ...[
+                ...monthTargets.map((item) {
+                  print('🔍 MonthTarget for ${item.month}:');
+                  print('   - All keys: ${item.data.keys.toList()}');
+                  print(
+                    '   - diamondtotal: ${item.data['diamondtotal']}',
+                  );
+                  print('   - diamonds: ${item.data['diamonds']}');
+                  print('   - total_hour: ${item.data['total_hour']}');
+                  print(
+                    '   - Parsed diamonds: ${item.targetModel?.diamonds}',
+                  );
+                  print('   - Parsed hours: ${item.targetModel?.hours}');
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: CustomTargets(
+                      title:
+                      item.data['month']?.toString() ??
+                          _formatMonthLabel(item.month),
+                      progressBarColor: Colors.blue,
+                      containerColor: const Color(0xff1D0014),
+                      diamonds: item.targetModel?.diamonds ?? 0,
+                      Hours: item.targetModel?.hours ?? 0.0,
+                    ),
+                  );
+                }).toList(),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -219,8 +251,13 @@ String _roleWiseMonthUrl(UiUserRole role, String month) {
 class _MonthTarget {
   final String month;
   final Map<String, dynamic> data;
+  final TargetRequestModel? targetModel;
 
-  const _MonthTarget({required this.month, required this.data});
+  const _MonthTarget({
+    required this.month,
+    required this.data,
+    this.targetModel,
+  });
 }
 
 List<String> _getRecentMonths(int count) {
@@ -249,7 +286,7 @@ String _formatMonthLabel(String yyyyMM) {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
   final idx = (monthNum.clamp(1, 12)) - 1;
   return '${names[idx]} $year';

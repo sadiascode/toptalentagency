@@ -16,12 +16,12 @@ class AlertCountsModel {
     // Parse high and low priority alerts
     int highCount = 0;
     int lowCount = 0;
-    
+
     for (final alert in alertsList) {
       if (alert is Map<String, dynamic>) {
         final priority = alert['priority']?.toString().toLowerCase() ?? '';
         final severity = alert['severity']?.toString().toLowerCase() ?? '';
-        
+
         if (priority == 'high' || priority == 'critical' || severity == 'high') {
           highCount++;
         } else if (priority == 'low' || severity == 'low') {

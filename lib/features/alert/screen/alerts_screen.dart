@@ -22,6 +22,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
   late final List<String> tabs;
   bool isLoading = false;
   AlertCountsModel? alertCounts;
+  List<Alert> alerts = [];
   String? errorMessage;
 
   @override
@@ -47,7 +48,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     try {
       final token = await TokenStorageService.getStoredToken();
       final dio = Dio();
-      
+
       final response = await dio.get(
         _getRoleWiseAlertUrl(widget.role),
         options: Options(
@@ -61,13 +62,19 @@ class _AlertsScreenState extends State<AlertsScreen> {
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
         print('🔍 API Response for role ${widget.role}: $data');
-        
+
+        // Parse the alerts response with role-wise data
+        final alertsResponse = AlertsResponse.fromJson(data);
+
         setState(() {
-          alertCounts = AlertCountsModel.fromJson(data);
+          alertCounts = alertsResponse.alertCounts;
+          alerts = alertsResponse.alerts;
           isLoading = false;
         });
-        
-        print('✅ Parsed: High=${alertCounts?.high}, Low=${alertCounts?.low}');
+
+        print(
+          '✅ Parsed: High=${alertCounts?.high}, Low=${alertCounts?.low}, Alerts count: ${alerts.length}',
+        );
       } else {
         setState(() {
           errorMessage = 'Failed to load alerts (${response.statusCode})';
@@ -86,13 +93,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
   String _getRoleWiseAlertUrl(UiUserRole role) {
     switch (role) {
       case UiUserRole.admin:
-        return '${Urls.AI_Response_alertproblem}?role=admin';
+        return '${Urls.AI_Response_alerts}?role=admin';
       case UiUserRole.manager:
-        return '${Urls.AI_Response_alertproblem}?role=manager';
+        return '${Urls.AI_Response_alerts}?role=manager';
       case UiUserRole.creator:
-        return '${Urls.AI_Response_alertproblem}?role=creator';
+        return '${Urls.AI_Response_alerts}?role=creator';
       default:
-        return Urls.AI_Response_alertproblem;
+        return Urls.AI_Response_alerts;
     }
   }
 
@@ -121,7 +128,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             children: [
               const SizedBox(height: 15),
 
-              /// Medium card with API data
+              //Medium card with API data
               CustomMedium(
                 high: alertCounts?.high ?? 0,
                 low: alertCounts?.low ?? 0,
@@ -129,67 +136,36 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
               const SizedBox(height: 25),
 
-              /// Alerts list
-              const CustomAlert(
-                priorityLabel: "High",
-                priorityConColor: Color(0xffD4183D),
-                priorityColor: Color(0xffFFE2E2),
-                categoryLabel: "underperformance",
-                categoryLabelCo: Color(0xffD4183D),
-                name: 'Sarah Johnson',
-                description:
-                'Sarah Johnson is underperforming - 59% of \ntarget',
-                date: '02/12/2025, 13:31:55',
-                containerColor: Color(0xFF101828),
-                containerBorderColor: Color(0xFFD4183D),
-              ),
-
-              const SizedBox(height: 15),
-
-              const CustomAlert(
-                priorityLabel: "High",
-                priorityConColor: Color(0xffD4183D),
-                priorityColor: Color(0xffFFE2E2),
-                categoryLabel: "spike",
-                categoryLabelCo: Color(0xffD4183D),
-                name: 'Lisa Anderson',
-                description:
-                'Lisa Anderson experienced a 40% drop in \nengagement',
-                date: '02/12/2025, 13:31:55',
-                containerColor: Color(0xFF101828),
-                containerBorderColor: Color(0xFFD4183D),
-              ),
-
-              const SizedBox(height: 15),
-
-              const CustomAlert(
-                priorityLabel: "Medium",
-                priorityConColor: Color(0xffFF6900),
-                priorityColor: Color(0xffFFEDD4),
-                categoryLabel: "target",
-                categoryLabelCo: Color(0xffFF6900),
-                name: 'Sarah Johnson',
-                description:
-                'Monthly target at risk - 65% completion with 5 \ndays remaining',
-                date: '02/12/2025, 13:31:55',
-                containerColor: Color(0xFF101828),
-                containerBorderColor: Color(0xffFF6900),
-              ),
-
-              const SizedBox(height: 15),
-
-              const CustomAlert(
-                priorityLabel: "Medium",
-                priorityConColor: Color(0xffFF6900),
-                priorityColor: Color(0xffFFEDD4),
-                categoryLabel: "system",
-                categoryLabelCo: Color(0xffFF6900),
-                name: 'Lisa Anderson',
-                description: 'TikTok API token expiring in 3 days',
-                date: '02/12/2025, 13:31:55',
-                containerColor: Color(0xFF101828),
-                containerBorderColor: Color(0xffFF6900),
-              ),
+              // Alerts list
+              if (alerts.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: Text(
+                      'No alerts available',
+                      style: TextStyle(color: Colors.white54, fontSize: 16),
+                    ),
+                  ),
+                )
+              else
+                ...alerts.map(
+                      (alert) => Padding(
+                    padding: const EdgeInsets.only(bottom: 15),
+                    child: CustomAlert(
+                      priorityLabel: alert.priority?.toUpperCase() ?? "HIGH",
+                      priorityConColor: _getPriorityColor(alert.priority),
+                      priorityColor: _getPriorityBgColor(alert.priority),
+                      categoryLabel: alert.alertType ?? "general",
+                      categoryLabelCo: _getPriorityColor(alert.priority),
+                      name: alert.username ?? 'Unknown User',
+                      description:
+                      alert.alertMessage ?? 'No description available',
+                      date: _formatDate(alert.updatedAt),
+                      containerColor: const Color(0xFF101828),
+                      containerBorderColor: _getPriorityColor(alert.priority),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -225,5 +201,16 @@ class _AlertsScreenState extends State<AlertsScreen> {
       default:
         return const Color(0xffFFE2E2);
     }
+  }
+
+  String _formatDate(DateTime? dateTime) {
+    if (dateTime == null) return 'Unknown date';
+
+    return '${dateTime.day.toString().padLeft(2, '0')}/'
+        '${dateTime.month.toString().padLeft(2, '0')}/'
+        '${dateTime.year}, '
+        '${dateTime.hour.toString().padLeft(2, '0')}:'
+        '${dateTime.minute.toString().padLeft(2, '0')}:'
+        '${dateTime.second.toString().padLeft(2, '0')}';
   }
 }
