@@ -17,6 +17,7 @@ import 'package:top_talent_agency/features/home/widget/custom_minicontainer.dart
 import 'package:top_talent_agency/features/home/widget/custom_pichart.dart';
 import 'package:top_talent_agency/features/home/widget/custom_summary.dart';
 import 'package:top_talent_agency/features/manager/data/manager_model.dart';
+import 'package:top_talent_agency/features/home/data/manager_home_model.dart';
 import 'package:top_talent_agency/app/urls.dart';
 import 'package:top_talent_agency/core/services/token_storage_service.dart';
 
@@ -40,8 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
   UserProfileModel? userProfile;
   bool isLoadingProfile = true;
   
-  // Manager data from ManagerModel
-  ManagerModel? currentManager;
+  // Manager data from ManagerHomeModel
+  ManagerHomeModel? currentManager;
 
   @override
   void initState() {
@@ -79,18 +80,41 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
         print('🔍 Manager API Response: $data');
+        print('🔍 Response keys: ${data is Map ? data.keys.toList() : "Not a Map"}');
         
         // Parse managers list and find current manager
-        List<ManagerModel> managerList = [];
+        List<ManagerHomeModel> managerList = [];
         
         if (data is List) {
           print('🔍 Data is List with ${data.length} items');
-          managerList = data.map((item) => ManagerModel.fromJson(item)).toList();
+          print('🔍 First item keys: ${data.isNotEmpty ? (data[0] is Map ? data[0].keys.toList() : "Not a Map") : "Empty"}');
+          try {
+            managerList = data.map((item) => ManagerHomeModel.fromJson(item)).toList();
+            print('✅ ManagerHomeModel parsing successful');
+          } catch (e) {
+            print('❌ ManagerHomeModel parsing error: $e');
+          }
         } else if (data['data'] is List) {
           print('🔍 Data contains List with ${data['data'].length} items');
-          managerList = (data['data'] as List).map((item) => ManagerModel.fromJson(item)).toList();
+          print('🔍 First item keys: ${data['data'].isNotEmpty ? (data['data'][0] is Map ? data['data'][0].keys.toList() : "Not a Map") : "Empty"}');
+          try {
+            managerList = (data['data'] as List).map((item) => ManagerHomeModel.fromJson(item)).toList();
+            print('✅ ManagerHomeModel parsing successful');
+          } catch (e) {
+            print('❌ ManagerHomeModel parsing error: $e');
+          }
+        } else if (data['managers'] is List) {
+          print('🔍 Data contains managers list with ${data['managers'].length} items');
+          print('🔍 First item keys: ${data['managers'].isNotEmpty ? (data['managers'][0] is Map ? data['managers'][0].keys.toList() : "Not a Map") : "Empty"}');
+          try {
+            managerList = (data['managers'] as List).map((item) => ManagerHomeModel.fromJson(item)).toList();
+            print('✅ ManagerHomeModel parsing successful');
+          } catch (e) {
+            print('❌ ManagerHomeModel parsing error: $e');
+          }
         } else {
           print('🔍 Unexpected data format: ${data.runtimeType}');
+          print('🔍 Data structure: $data');
         }
         
         print('🔍 Parsed ${managerList.length} managers');
@@ -111,6 +135,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentManager = manager;
                 });
                 print('✅ Manager data loaded: ${manager.username} with rank ${manager.rank}');
+                print('🔍 ManagerHomeModel values:');
+                print('   - myCreators: ${manager.myCreators}');
+                print('   - diamond: ${manager.diamond}');
+                print('   - hour: ${manager.hour}');
+                print('   - atRisk: ${manager.atRisk}');
               }
               return;
             }
@@ -320,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
                         )
                       : Text(
-                          "Loading your ranking...",
+                          "Loading ranking...",
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
                         ),
@@ -335,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: isManager ? "My Creators" : "My Rank",
                       iconPath: 'assets/user.svg',
                       iconColor:Color(0xff6A7282),
-                      number: 10666,
+                      number: isManager ? (currentManager?.myCreators ?? 0) : 10666,
                       subtitleColor: Color(0xff00A63E),
                     ),
                     SizedBox(width: 9),
@@ -343,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: "Today's Diamonds",
                       iconPath: 'assets/coin.svg',
                       iconColor:Color(0xffF0B100),
-                      number: 2035,
+                      number: isManager ? (currentManager?.diamond ?? 0) : 2035,
                     ),
                   ],
                 ),
@@ -352,18 +381,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     CustomBoth(
-                      title: "Today's Hours",
+                      title: "Hours",
                       iconPath: 'assets/clock.svg',
                       iconColor:Color(0xff2B7FFF),
-                      number: 24560,
+                      number: isManager ? (currentManager?.hour?.toInt() ?? 0) : 24560,
                       subtitleColor: Color((0xffF54900)),
                     ),
                     SizedBox(width: 9),
                     CustomBoth(
-                      title: "Alerts",
+                      title: "Risk",
                       iconPath: 'assets/Alert.svg',
                       iconColor:Color(0xffCF5050),
-                      number: 45623,
+                      number: isManager ? (currentManager?.atRisk ?? 0) : 45623,
                     ),
                   ],
                 ),
@@ -437,7 +466,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   diamondValue: adminStats?.formattedDiamondAchieve ?? '0',
                 )
               else
-                CustomPichart(),
+                CustomPichart(
+                  diamondValue: isManager ? (currentManager?.diamond?.toString() ?? '0') : '0',
+                ),
 
               SizedBox(height: 25),
               if (isAdmin)
