@@ -8,6 +8,7 @@ import 'package:top_talent_agency/core/services/token_storage_service.dart';
 import 'package:top_talent_agency/core/services/token_refresh_service.dart';
 import '../../../app/urls.dart';
 import '../../../core/services/network/network_client.dart';
+import '../ui/screens/forgot_screen.dart';
 
 class LoginController extends GetxController {
   final TextEditingController usernameController = TextEditingController();
@@ -24,7 +25,8 @@ class LoginController extends GetxController {
 
     networkClient = NetworkClient(
       onUnAuthorize: () {
-        Get.snackbar("Error", "Unauthorized");
+        // Handle unauthorized access globally if needed, e.g., clear logs
+        print("Unauthorized access detected");
       },
       commonHeaders: () => {
         "Content-Type": "application/json",
@@ -42,25 +44,45 @@ class LoginController extends GetxController {
     final password = passwordController.text.trim();
 
     if (username.isEmpty || password.isEmpty) {
-      Get.snackbar("Error", "Username and password cannot be empty");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Username and password cannot be empty")),
+      );
       return;
     }
 
     isLoading.value = true;
 
-    final response = await networkClient.postRequest(
-      Urls.login,
-      body: {"username": username, "password": password},
-    );
-
-    isLoading.value = false;
-
-    if (!response.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.errorMessage ?? "Login failed")),
+    try {
+      final response = await networkClient.postRequest(
+        Urls.login,
+        body: {"username": username, "password": password},
       );
-      return;
-    }
+
+      isLoading.value = false;
+
+      if (!response.isSuccess) {
+        String errorMessage = response.errorMessage ?? "Login failed";
+        
+        // Try to parse specific error message from 'detail' field as seen in logs
+        if (response.responseData != null && response.responseData is Map) {
+          final data = response.responseData as Map;
+          if (data['detail'] != null) {
+            errorMessage = data['detail'].toString();
+          } else if (data['message'] != null) {
+            errorMessage = data['message'].toString();
+          }
+        }
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
 
     final data = response.responseData;
 
@@ -87,68 +109,49 @@ class LoginController extends GetxController {
     // Check for token in various possible locations
     if (data['access'] != null) {
       authToken = data['access'].toString();
-      print("Found token in data['access']: $authToken");
     } else if (data['token'] != null) {
       authToken = data['token'].toString();
-      print("Found token in data['token']: $authToken");
     } else if (data['access_token'] != null) {
       authToken = data['access_token'].toString();
-      print("Found token in data['access_token']: $authToken");
     } else if (data['jwt_token'] != null) {
       authToken = data['jwt_token'].toString();
-      print("Found token in data['jwt_token']: $authToken");
     } else if (data['data'] != null && data['data'] is Map) {
       Map dataMap = data['data'] as Map;
       if (dataMap['access'] != null) {
         authToken = dataMap['access'].toString();
-        print("Found token in data['data']['access']: $authToken");
       } else if (dataMap['token'] != null) {
         authToken = dataMap['token'].toString();
-        print("Found token in data['data']['token']: $authToken");
       } else if (dataMap['access_token'] != null) {
         authToken = dataMap['access_token'].toString();
-        print("Found token in data['data']['access_token']: $authToken");
       }
     } else if (data['user'] != null && data['user'] is Map) {
       Map userMap = data['user'] as Map;
       if (userMap['token'] != null) {
         authToken = userMap['token'].toString();
-        print("Found token in data['user']['token']: $authToken");
       }
     }
 
-        // Store token if found
-    if (authToken != null && authToken.isNotEmpty) {
-      final box = GetStorage();
-      await box.write('token', authToken);
-      await box.write('access_token', authToken);
-      await box.write('access', authToken); // Store with 'access' key too
-      
-      // Verify storage
-      final storedToken = box.read('access');
-      final storedToken2 = box.read('token');
-      
-      print("✅ Token stored successfully: ${authToken.length} characters");
-      print("🔑 Stored with keys: token, access_token, access");
-      print("🔍 Verification - access token: ${storedToken != null ? "Found (${storedToken.length} chars)" : "Missing"}");
-      print("🔍 Verification - token: ${storedToken2 != null ? "Found (${storedToken2.length} chars)" : "Missing"}");
-      print("📦 All storage keys: ${box.getKeys()}");
-    } else {
+    // Verify token presence
+    if (authToken == null || authToken.isEmpty) {
       print("⚠️ No token found in response");
-      
-      // Try to manually extract token from the access field if it exists
-      if (data['access'] != null) {
-        final manualToken = data['access'].toString();
-        if (manualToken.isNotEmpty) {
-          print("🔧 Manual token extraction from 'access' field");
-          final box = GetStorage();
-          await box.write('access', manualToken);
-          await box.write('token', manualToken);
-          await box.write('access_token', manualToken);
-          print("🔧 Manual token stored: ${manualToken.length} chars");
-        }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Login failed: User not found or invalid credentials"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
+      return; 
     }
+
+    // Store token
+    final box = GetStorage();
+    await box.write('token', authToken);
+    await box.write('access_token', authToken);
+    await box.write('access', authToken); 
+    
+    print("✅ Token stored successfully");
 
     String? roleStr;
 
@@ -239,10 +242,31 @@ class LoginController extends GetxController {
     }
 
     // Navigate to AppShell
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => AppShell(role: currentUiUserRole)),
-    );
+    if (data['user'] != null && data['user']['email_verified'] == false) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ForgotScreen(isVerification: true),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => AppShell(role: currentUiUserRole)),
+      );
+    }
+    } catch (e) {
+      isLoading.value = false;
+      print("Login error: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("An unexpected error occurred"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override

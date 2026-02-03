@@ -33,37 +33,42 @@ class ResetPasswordController extends GetxController {
     );
   }
 
-  bool validatePasswords(String newPassword, String confirmPassword) {
+  bool validatePasswords(String newPassword, String confirmPassword, BuildContext context) {
     // Check if passwords are empty
     if (newPassword.isEmpty) {
-      Get.snackbar("Error", "New password cannot be empty");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("New password cannot be empty")),
+      );
       return false;
     }
 
     if (confirmPassword.isEmpty) {
-      Get.snackbar("Error", "Please confirm your password");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please confirm your password")),
+      );
       return false;
     }
 
     // Check password length (minimum 8 characters)
     if (newPassword.length < 8) {
-      Get.snackbar("Error", "Password must be at least 8 characters long");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password must be at least 8 characters long")),
+      );
       return false;
     }
 
     // Check if passwords match
     if (newPassword != confirmPassword) {
-      Get.snackbar("Error", "Passwords do not match");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
       return false;
     }
 
     // Check for basic password strength (optional but recommended)
     if (!RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)').hasMatch(newPassword)) {
-      Get.snackbar(
-        "Error", 
-        "Password must contain at least one letter and one number",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password must contain at least one letter and one number")),
       );
       return false;
     }
@@ -71,100 +76,93 @@ class ResetPasswordController extends GetxController {
     return true;
   }
 
+  var isSetPassword = false;
+
+  void setIsSetPassword(bool value) {
+    isSetPassword = value;
+  }
+
   Future<void> resetPassword(BuildContext context) async {
     final newPassword = newPasswordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    if (!validatePasswords(newPassword, confirmPassword)) {
+    if (!validatePasswords(newPassword, confirmPassword, context)) {
       return;
     }
 
-    // Check if email and token are available
+    // Check if email is available
     if (email.isEmpty) {
-      Get.snackbar("Error", "Email is required for password reset");
-      return;
-    }
-
-    if (resetToken.isEmpty) {
-      Get.snackbar("Error", "Reset token is required");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email is required")),
+      );
       return;
     }
 
     isLoading.value = true;
 
     try {
+      // Use the Reset Password API as requested
+      // Endpoint: auth/reset-password/
+      // Body: email, new_password, confirm_password
       final response = await networkClient.postRequest(
         Urls.Reset_password,
         body: {
           "email": email,
-          "token": resetToken,
-          "password": newPassword,
-          "password_confirmation": confirmPassword,
+          "new_password": newPassword,
+          "confirm_password": confirmPassword,
         },
       );
 
       isLoading.value = false;
 
       if (!response.isSuccess) {
-        String errorMessage = response.errorMessage ?? "Password reset failed";
-        
-        // Handle specific error cases
-        if (errorMessage.toLowerCase().contains('token') && 
-            (errorMessage.toLowerCase().contains('invalid') || 
-             errorMessage.toLowerCase().contains('expired'))) {
-          errorMessage = "Reset token is invalid or expired. Please try again.";
-        } else if (errorMessage.toLowerCase().contains('password')) {
-          errorMessage = "Password reset failed. Please check your requirements.";
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.errorMessage ?? "Failed to reset password"),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
-        
-        Get.snackbar(
-          "Error",
-          errorMessage,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
         return;
       }
 
       final data = response.responseData;
-      if (data == null) {
-        Get.snackbar(
-          "Error",
-          "Invalid server response",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+      
+      // Success
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Password reset successfully"),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
         );
-        return;
       }
 
-      // Success - show success message and navigate to login
-      Get.snackbar(
-        "Success",
-        "Password has been reset successfully",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-
-      // Clear controllers (don't store passwords locally)
+      // Clear controllers
       newPasswordController.clear();
       confirmPasswordController.clear();
 
-      // Navigate to Login screen, replacing all previous screens
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
+      // Navigate to LoginScreen
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      }
 
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        "Error",
-        "Something went wrong. Please try again.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Something went wrong. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
