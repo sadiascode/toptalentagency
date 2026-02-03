@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:top_talent_agency/features/home/data/home_ai_model.dart';
+import 'package:top_talent_agency/core/roles.dart';
+import 'package:top_talent_agency/features/alert/widget/custom_alert.dart';
 
 import '../../../common/custom_color.dart';
 
@@ -7,12 +9,14 @@ class CustomAlerts extends StatelessWidget {
   final AdminHomeAiModel? aiData;
   final bool isLoading;
   final String? errorMessage;
+  final UiUserRole? userRole; // Add role parameter
 
   const CustomAlerts({
     super.key,
     this.aiData,
     this.isLoading = false,
-    this.errorMessage
+    this.errorMessage,
+    this.userRole, // Add role parameter
   });
 
   @override

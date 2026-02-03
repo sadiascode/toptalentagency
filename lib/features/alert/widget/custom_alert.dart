@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:top_talent_agency/core/roles.dart';
 
 class CustomAlert extends StatelessWidget {
   final IconData icon;
@@ -15,6 +16,7 @@ class CustomAlert extends StatelessWidget {
   final String date;
   final Color containerColor;
   final Color containerBorderColor;
+  final UiUserRole? userRole;
 
   const CustomAlert({
     super.key,
@@ -31,6 +33,7 @@ class CustomAlert extends StatelessWidget {
     required this.date,
     required this.containerColor ,
     required this.containerBorderColor,
+    this.userRole,
   });
 
   @override
@@ -100,98 +103,100 @@ class CustomAlert extends StatelessWidget {
                     ),
                   ),
                   Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          final TextEditingController _textController = TextEditingController();
+                  // Show notification icon only for admin and manager
+                  if (userRole == UiUserRole.admin || userRole == UiUserRole.manager)
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            final TextEditingController _textController = TextEditingController();
 
-                          return Dialog(
-                            insetPadding: const EdgeInsets.symmetric(horizontal: 35), //dialog wider
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    "Create notification",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: const Text(
-                                      "Message",
+                            return Dialog(
+                              insetPadding: const EdgeInsets.symmetric(horizontal: 35), //dialog wider
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      "Create notification",
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 22,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  // TextField
-                                  TextField(
-                                    controller: _textController,
-                                    maxLines: 4, //height
-                                    decoration: InputDecoration(
-                                      hintText: 'Type your message',
-                                      contentPadding: const EdgeInsets.all(16),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(21),
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 20),
-
-                                  //   button
-                                  GestureDetector(
-                                    onTap: () {
-                                      final reason = _textController.text.trim();
-                                      if (reason.isNotEmpty) {
-                                        print("Reason: $reason");
-                                      }
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Container(
-                                      height: 50,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius: BorderRadius.circular(22),
-                                      ),
-                                      alignment: Alignment.center,
+                                    const SizedBox(height: 16),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
                                       child: const Text(
-                                        "Send notification",
+                                        "Message",
                                         style: TextStyle(
-                                          color: Colors.white,
                                           fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    SizedBox(height: 10),
+                                    // TextField
+                                    TextField(
+                                      controller: _textController,
+                                      maxLines: 4, //height
+                                      decoration: InputDecoration(
+                                        hintText: 'Type your message',
+                                        contentPadding: const EdgeInsets.all(16),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(21),
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 20),
+
+                                    //   button
+                                    GestureDetector(
+                                      onTap: () {
+                                        final reason = _textController.text.trim();
+                                        if (reason.isNotEmpty) {
+                                          print("Reason: $reason");
+                                        }
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Container(
+                                        height: 50,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius: BorderRadius.circular(22),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: const Text(
+                                          "Send notification",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    child: SvgPicture.asset(
-                      'assets/notification.svg',
-                      width: 24,
-                      height: 24,
-                      color: Colors.white,
-                    ),
-                  )
+                            );
+                          },
+                        );
+                      },
+                      child: SvgPicture.asset(
+                        'assets/notification.svg',
+                        width: 24,
+                        height: 24,
+                        color: Colors.white,
+                      ),
+                    )
                 ],
               ),
 

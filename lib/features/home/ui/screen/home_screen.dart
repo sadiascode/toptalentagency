@@ -594,22 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       iconPath: 'assets/coin.svg',
                       iconColor: Color(0xffF0B100),
                       number: isManager
-                          ? (() {
-                        print('💎 Diamond Debug:');
-                        print(
-                          '   - currentManager: ${currentManager != null ? "Present" : "Null"}',
-                        );
-                        print(
-                          '   - totalDiamond: ${currentManager?.totalDiamond}',
-                        );
-                        print(
-                          '   - totalDiamond type: ${currentManager?.totalDiamond.runtimeType}',
-                        );
-                        print(
-                          '   - Final value: ${currentManager?.totalDiamond ?? 0}',
-                        );
-                        return currentManager?.totalDiamond ?? 0;
-                      })()
+                          ? (currentManager?.totalDiamond ?? 0)
                           : (currentCreator?.totalDiamond ?? 0),
                     ),
                   ],
@@ -728,7 +713,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   adminStats?.formattedDiamondAchieve ?? '0',
                 )
               else
-                CustomCoin(),
+                CustomCoin(
+                  totalHour: isManager
+                      ? (currentManager?.totalHour ?? '0')
+                      : (currentCreator?.totalHour ?? '0'),
+                  totalDiamondAchieve: isManager
+                      ? (currentManager?.totalDiamond.toString() ?? '0')
+                      : (currentCreator?.totalDiamond.toString() ?? '0'),
+                ),
 
               SizedBox(height: 20),
               CustomAlerts(
